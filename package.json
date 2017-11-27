@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "migrate:up": "knex migrate:latest",
     "migrate:down": "knex migrate:rollback",
-    "migrate:refresh": "knex migrate:rollback && knex migrate:latest"
+    "migrate:refresh": "knex migrate:rollback && knex migrate:latest",
+    "dev": "node_modules/.bin/nodemon -V index.js",
+    "watch": "node_modules/.bin/nodemon -e js,mjs,json -w src -V index.js"
   },
   "author": "Denis Efremov <efremov.a.denis@gmail.com>",
   "license": "MIT",
