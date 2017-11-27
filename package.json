@@ -12,6 +12,7 @@
   "author": "Denis Efremov <efremov.a.denis@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@std/esm": "^0.17.2",
     "dotenv": "^4.0.0",
     "highlight.js": "^9.9.0",
     "image-size": "^0.6.1",
