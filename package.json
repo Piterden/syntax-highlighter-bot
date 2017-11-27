@@ -1,0 +1,19 @@
+{
+  "name": "syntaxhighlightbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^4.0.0",
+    "highlight.js": "^9.9.0",
+    "image-size": "^0.6.1",
+    "knex": "^0.14.2",
+    "mysql": "^2.15.0",
+    "node-telegram-bot-api": "^0.27.0"
+  }
+}
