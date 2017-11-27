@@ -2,6 +2,7 @@
 exports.up = function (knex) {
   return knex.schema.createTable('chats', function (table) {
     table.increments()
+    table.string('telegram_id', 40)
     table.string('name', 255)
     table.string('username', 255)
     table.boolean('active')
