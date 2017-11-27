@@ -2,7 +2,9 @@ import { Model, snakeCaseMappers } from 'objection'
 
 class UserModel extends Model {
 
-  static columnNameMappers = snakeCaseMappers()
+  static columnNameMappers = snakeCaseMappers();
+
+  static defaultEagerAlgorithm = Model.JoinEagerAlgorithm;
 
   static get tableName () {
     return 'users'

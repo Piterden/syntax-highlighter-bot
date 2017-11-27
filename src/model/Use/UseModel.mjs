@@ -4,7 +4,9 @@ import ChatModel from '../Chat/ChatModel'
 
 class UseModel extends Model {
 
-  static columnNameMappers = snakeCaseMappers()
+  static columnNameMappers = snakeCaseMappers();
+
+  static defaultEagerAlgorithm = Model.JoinEagerAlgorithm;
 
   static get tableName () {
     return 'uses'
