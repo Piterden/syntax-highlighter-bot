@@ -1,13 +1,14 @@
 
 exports.up = function (knex) {
   return knex.schema.createTable('uses', function (table) {
-    table.increments()
     table.integer('user_id').unsigned()
     table.integer('chat_id').unsigned()
-    table.boolean('active')
-    table.timestamps()
+    table.string('lang', 40).nullable()
+    table.text('code', 'longtext')
+    table.binary('image')
+    table.timestamp('created_at').defaultTo(knex.fn.now())
 
-    table.index(['user_id', 'chat_id'], 'use_foreign')
+    table.primary(['user_id', 'chat_id'])
   })
 }
 

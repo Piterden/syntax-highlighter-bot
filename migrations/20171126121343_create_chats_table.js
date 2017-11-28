@@ -1,12 +1,12 @@
 
 exports.up = function (knex) {
   return knex.schema.createTable('chats', function (table) {
-    table.increments()
-    table.string('telegram_id', 40)
-    table.string('name', 255)
-    table.string('username', 255)
+    table.integer('id').unique()
+    table.string('name', 255).unique()
     table.boolean('active')
-    table.timestamps()
+    table.timestamps(['created_at', 'updated_at'], true)
+
+    table.primary('id')
   })
 }
 
