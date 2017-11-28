@@ -2,14 +2,16 @@ import fs from 'fs'
 import path from 'path'
 import http from 'http'
 import crypto from 'crypto'
+import dotenv from 'dotenv'
 import webshot from 'webshot'
 import sizeOf from 'image-size'
 import highlight from 'highlight.js'
 import TelegramBot from 'node-telegram-bot-api'
 
-const token = 'YOUR_BOT_TOKEN'
+const _env = dotenv.config().parsed
+
 const server = 'DOMAIN_OR_IP' // Server domain or IP
-const serverURL = 'http://' + server + '/SyntaxHighlightBot/images/'
+const serverURL = `http://${server}/SyntaxHighlightBot/images/`
 
 const md5 = (string) => crypto.createHash('md5').update(string).digest('hex')
 
@@ -55,7 +57,7 @@ http.createServer(function (request, response) {
 
   request.on('end', function () {
     request.headers.recent = request.headers.recent || ''
-    const bot = new TelegramBot(token)
+    const bot = new TelegramBot(_env.BOT_TOKEN)
 
     if (!body && request.headers.inline) {
       console.log('INLINE VACIO')
