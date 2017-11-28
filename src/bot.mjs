@@ -7,20 +7,21 @@ import sizeOf from 'image-size'
 import highlight from 'highlight.js'
 import TelegramBot from 'node-telegram-bot-api'
 
-const md5 = crypto.createHash('md5')
 const token = 'YOUR_BOT_TOKEN'
 const server = 'DOMAIN_OR_IP' // Server domain or IP
 const serverURL = 'http://' + server + '/SyntaxHighlightBot/images/'
 
+const md5 = (string) => crypto.createHash('md5').update(string).digest('hex')
+
 const getPath = (file) => path.join(__dirname, `images/${file}`)
+
+const isExisted = (file) => fs.existsSync(file)
 
 const getFileURL = (file) => serverURL + file
 
 const getImageWidth = (file) => sizeOf(getPath(file)).width
 
 const getImageHeight = (file) => sizeOf(getPath(file)).height
-
-const isExisted = (file) => fs.existsSync(file)
 
 const getPhotoData = (file, idx = null) => ({
   'type': 'photo',
