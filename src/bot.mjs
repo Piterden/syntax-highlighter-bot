@@ -11,6 +11,12 @@ import express from 'express'
 // import bodyParser from 'body-parser'
 import Telegraf from 'telegraf'
 
+import messages from './config/messages'
+
+// import UseModel from './model/Use/UseModel'
+// import UserModel from './model/User/UserModel'
+import ChatModel from './model/Chat/ChatModel'
+
 const _env = dotenv.config().parsed
 
 const tlsOptions = {
@@ -51,13 +57,44 @@ bot.telegram.setWebhook(
 https.createServer(tlsOptions, server)
   .listen(_env.WEBHOOK_PORT, _env.WEBHOOK_DOMAIN)
 
-bot.start((ctx) => {
-  console.log(ctx)
+bot.start(() => {
+  console.log('Started!')
 })
 
-bot.on('text', (ctx) => {
-  ctx.reply('Hey there!')
+// bot.on('text', (ctx) => {
+//   ctx.reply('Hey there!')
+// })
+
+bot.on(['new_chat_members'], (ctx) => {
+  if (ctx.updates.message.new_chat_members.includes(_env.BOT_USER)) {
+    ChatModel
+      .findOrNew(ctx.getChat())
+      .then(chatEntry => {
+        console.log('Chat entry was created and activated!')
+        console.log(chatEntry)
+        ctx.replyWithMarkdown(messages.welcomeGroup)
+      })
+  }
 })
+
+bot.on(['left_chat_member'], (ctx) => {
+  if (ctx.updates.message.left_chat_member === _env.BOT_USER) {
+    ChatModel
+      .findById(ctx.getChat().id)
+      .then(chatEntry => {
+        console.log('Chat entry was deactivated!')
+        console.log(chatEntry)
+      })
+  }
+})
+
+// bot.on('callback_query', (ctx) => {
+
+// })
+
+// bot.on('inline_query', (ctx) => {
+
+// })
 
 // const md5 = (string) => crypto.createHash('md5').update(string).digest('hex')
 

@@ -4,13 +4,11 @@ import ChatModel from '../Chat/ChatModel'
 
 class UseModel extends Model {
 
+  static tableName = 'uses';
+
   static columnNameMappers = snakeCaseMappers();
 
   static defaultEagerAlgorithm = Model.JoinEagerAlgorithm;
-
-  static get tableName () {
-    return 'uses'
-  }
 
   static get jsonSchema () {
     return {
@@ -20,7 +18,10 @@ class UseModel extends Model {
         id: { type: 'integer' },
         userId: { type: 'integer' },
         chatId: { type: 'integer' },
-        active: { type: 'boolean', default: true },
+        lang: { type: 'string' },
+        code: { type: 'string' },
+        image: { type: 'string' },
+        createdAt: { type: 'datetime' },
       },
     }
   }
