@@ -47,6 +47,10 @@ class UseModel extends Model {
     }
   }
 
+  $beforeInsert () {
+    this.createdAt = new Date().toISOString()
+  }
+
 }
 
 export default UseModel

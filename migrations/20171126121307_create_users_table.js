@@ -4,7 +4,7 @@ exports.up = function (knex) {
     table.integer('id').unique()
     table.string('name', 255).unique()
     table.string('theme', 40)
-    table.timestamps(['created_at', 'updated_at'], true)
+    table.timestamps(['created_at', 'updated_at'])
 
     table.primary('id')
   })
