@@ -1,6 +1,6 @@
-// import fs from 'fs'
-// import path from 'path'
-// import http from 'http'
+import fs from 'fs'
+import path from 'path'
+import https from 'https'
 // import crypto from 'crypto'
 import dotenv from 'dotenv'
 // import rimraf from 'rimraf'
@@ -8,12 +8,56 @@ import express from 'express'
 // import webshot from 'webshot'
 // import sizeOf from 'image-size'
 // import highlight from 'highlight.js'
-import bodyParser from 'body-parser'
-import TelegramBot from 'node-telegram-bot-api'
+// import bodyParser from 'body-parser'
+import Telegraf from 'telegraf'
 
 const _env = dotenv.config().parsed
-const url = `https://${_env.WEBHOOK_DOMAIN}`
-const port = _env.WEBHOOK_PORT
+
+const tlsOptions = {
+  key: fs.readFileSync(path.resolve(_env.WEBHOOK_KEY)),
+  cert: fs.readFileSync(path.resolve(_env.WEBHOOK_CERT)),
+}
+
+const server = express()
+const bot = new Telegraf(_env.BOT_TOKEN, { telegram: { webhookReply: true } })
+
+bot.use((ctx, next) => {
+  const start = new Date()
+  return next(ctx).then(() => {
+    console.log(`Response time ${(new Date()) - start}ms`)
+  })
+})
+
+// parse the updates to JSON
+server.use(bot.webhookCallback(`/${_env.WEBHOOK_PATH}`))
+
+// server.get('/', (req, res) => {
+//   console.log(req)
+//   res.send(bot.telegram.getWebhookInfo())
+//   res.sendStatus(200)
+// })
+
+server.post(`/${_env.WEBHOOK_PATH}`, (req, res) => {
+  bot.handleUpdate(req.body, res)
+})
+
+// Set telegram webhook
+bot.telegram.setWebhook(
+  `https://${_env.WEBHOOK_DOMAIN}:${_env.WEBHOOK_PORT}/${_env.WEBHOOK_PATH}`,
+  tlsOptions.cert
+)
+
+// Start Express Server
+https.createServer(tlsOptions, server)
+  .listen(_env.WEBHOOK_PORT, _env.WEBHOOK_DOMAIN)
+
+bot.start((ctx) => {
+  console.log(ctx)
+})
+
+bot.on('text', (ctx) => {
+  ctx.reply('Hey there!')
+})
 
 // const md5 = (string) => crypto.createHash('md5').update(string).digest('hex')
 
@@ -35,32 +79,6 @@ const port = _env.WEBHOOK_PORT
 //   'photo_height': getImageHeight(file),
 //   'id': file + (idx || ''),
 // })
-
-const bot = new TelegramBot(_env.BOT_TOKEN)
-
-// This informs the Telegram servers of the new webhook.
-bot.setWebHook(`${url}/bot${_env.BOT_TOKEN}`)
-
-const app = express()
-
-// parse the updates to JSON
-app.use(bodyParser.json())
-
-// We are receiving updates at the route below!
-app.post(`/bot${_env.BOT_TOKEN}`, (req, res) => {
-  bot.processUpdate(req.body)
-  res.sendStatus(200)
-})
-
-// Start Express Server
-app.listen(port, () => {
-  console.log(`Express server is listening on ${port}`)
-})
-
-// Just to ping!
-bot.on('message', msg => {
-  bot.sendMessage(msg.chat.id, 'I am alive!')
-})
 
 // http.createServer(function (request, response) {
 //   console.log(JSON.stringify(request.headers))

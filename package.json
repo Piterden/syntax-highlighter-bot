@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "migrate": "npm run migrate:up",
     "migrate:up": "knex migrate:latest",
     "migrate:down": "knex migrate:rollback",
     "migrate:refresh": "knex migrate:rollback && knex migrate:latest",
@@ -16,14 +17,15 @@
   "dependencies": {
     "@std/esm": "^0.17.3",
     "dotenv": "^4.0.0",
+    "express": "^4.16.2",
     "highlight.js": "^9.9.0",
     "image-size": "^0.6.1",
     "knex": "^0.14.2",
     "mysql": "^2.15.0",
-    "node-telegram-bot-api": "^0.27.0",
     "nodemon": "^1.12.1",
     "objection": "^0.9.2",
     "rimraf": "^2.6.2",
+    "telegraf": "^3.16.4",
     "webshot": "^0.18.0"
   }
 }
