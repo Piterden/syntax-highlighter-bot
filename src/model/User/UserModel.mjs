@@ -1,4 +1,7 @@
-import { Model, snakeCaseMappers } from 'objection'
+import Objection from 'objection'
+
+const Model = Objection.Model
+const snakeCaseMappers = Objection.snakeCaseMappers
 
 class UserModel extends Model {
 
