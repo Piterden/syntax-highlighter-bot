@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import Knex from 'knex'
 import https from 'https'
 // import crypto from 'crypto'
 import dotenv from 'dotenv'
@@ -10,6 +11,7 @@ import express from 'express'
 // import highlight from 'highlight.js'
 // import bodyParser from 'body-parser'
 import Telegraf from 'telegraf'
+// import Objection from 'objection'
 
 import messages from './config/messages'
 
@@ -19,10 +21,15 @@ import ChatModel from './model/Chat/ChatModel'
 
 const _env = dotenv.config().parsed
 
+import dbConfig from '../knexfile'
+
 const tlsOptions = {
   key: fs.readFileSync(path.resolve(_env.WEBHOOK_KEY)),
   cert: fs.readFileSync(path.resolve(_env.WEBHOOK_CERT)),
 }
+
+const knex = Knex(dbConfig.development)
+ChatModel.knex(knex)
 
 const server = express()
 const bot = new Telegraf(_env.BOT_TOKEN, { telegram: { webhookReply: true } })
@@ -54,7 +61,8 @@ bot.telegram.setWebhook(
 )
 
 // Start Express Server
-https.createServer(tlsOptions, server)
+https
+  .createServer(tlsOptions, server)
   .listen(_env.WEBHOOK_PORT, _env.WEBHOOK_DOMAIN)
 
 bot.start(() => {
@@ -66,25 +74,36 @@ bot.start(() => {
 // })
 
 bot.on(['new_chat_members'], (ctx) => {
-  if (ctx.updates.message.new_chat_members.includes(_env.BOT_USER)) {
-    ChatModel
-      .findOrNew(ctx.getChat())
-      .then(chatEntry => {
-        console.log('Chat entry was created and activated!')
-        console.log(chatEntry)
-        ctx.replyWithMarkdown(messages.welcomeGroup)
+  console.log(ctx.update.message)
+  if (ctx.update.message.new_chat_member.username === _env.BOT_USER) {
+    ChatModel.query()
+      .findById(ctx.update.message.chat.id)
+      .then(chat => {
+        return chat
+          ? ChatModel.query()
+            .patchAndFetchById(chat.id, { active: true })
+            .then(() => ctx.replyWithMarkdown(messages.welcomeGroup))
+            .catch(err => console.log(err))
+          : ChatModel.query()
+            .insert({ ...ctx.update.message.chat, active: true })
+            .then(() => ctx.replyWithMarkdown(messages.welcomeGroup))
+            .catch(err => console.log(err))
       })
+      .catch(err => console.log(err))
   }
 })
 
 bot.on(['left_chat_member'], (ctx) => {
-  if (ctx.updates.message.left_chat_member === _env.BOT_USER) {
-    ChatModel
-      .findById(ctx.getChat().id)
-      .then(chatEntry => {
-        console.log('Chat entry was deactivated!')
-        console.log(chatEntry)
-      })
+  console.log(ctx.update.message)
+  if (ctx.update.message.left_chat_member.username === _env.BOT_USER) {
+    ChatModel.query()
+      .findById(ctx.update.message.chat.id)
+      .then(chat => ChatModel.query()
+        .patchAndFetchById(chat.id, { active: false })
+        .then()
+        .catch(err => console.log(err))
+      )
+      .catch(err => console.log(err))
   }
 })
 

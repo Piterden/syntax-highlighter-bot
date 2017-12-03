@@ -1,8 +1,9 @@
 
 exports.up = function (knex) {
   return knex.schema.createTable('chats', function (table) {
-    table.integer('id').unique()
-    table.string('name', 255).unique()
+    table.bigInteger('id').unique()
+    table.string('title', 255).unique()
+    table.string('type', 40)
     table.boolean('active')
     table.timestamps(['created_at', 'updated_at'])
 

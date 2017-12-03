@@ -20,35 +20,23 @@ class ChatModel extends Model {
   static get jsonSchema () {
     return {
       type: 'object',
-      required: ['telegramId', 'name', 'theme'],
+      required: ['id', 'title', 'type'],
       properties: {
         id: { type: 'integer' },
-        name: { type: 'string', minLength: 1, maxLength: 255 },
+        title: { type: 'string', minLength: 1, maxLength: 255 },
+        type: { type: 'string', minLength: 1, maxLength: 40 },
         active: { type: 'boolean' },
         createdAt: { type: 'datetime' },
       },
     }
   }
 
-  findOrNew (chat, cb) {
-    this
-      .findById(chat.id)
-      .then(chatEntry => cb(chatEntry))
-      .catch(() => {
-        this
-          .query()
-          .insert({ id: chat.id, name: chat.username || '', active: true })
-          .returning('*')
-          .then(chatEntry => cb(chatEntry))
-      })
-  }
-
   $beforeInsert () {
-    this.createdAt = new Date().toISOString()
+    this.createdAt = new Date()
   }
 
   $beforeUpdate () {
-    this.updatedAt = new Date().toISOString()
+    this.updatedAt = new Date()
   }
 
 }
