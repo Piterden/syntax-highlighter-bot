@@ -11,12 +11,14 @@ import express from 'express'
 // import highlight from 'highlight.js'
 // import bodyParser from 'body-parser'
 import Telegraf from 'telegraf'
+import Markup from 'telegraf/markup'
 // import Objection from 'objection'
 
+import themes from './config/themes'
 import messages from './config/messages'
 
 // import UseModel from './model/Use/UseModel'
-// import UserModel from './model/User/UserModel'
+import UserModel from './model/User/UserModel'
 import ChatModel from './model/Chat/ChatModel'
 
 const _env = dotenv.config().parsed
@@ -28,8 +30,41 @@ const tlsOptions = {
   cert: fs.readFileSync(path.resolve(_env.WEBHOOK_CERT)),
 }
 
+const isPrivateChat = (ctx) => ctx.update.message.chat.type === 'private'
+
+const getChatUser = (ctx) => {
+  const user = ctx.update.message.from
+  delete user.is_bot
+  return user
+}
+
+const getThemeSlug = (name) => name
+  .split(' ')
+  .map(name => name.toLowerCase())
+  .join('-')
+
+const getThemeName = (theme) => theme
+  .split('-')
+  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+  .join(' ')
+  .replace(/(^.*$)/, '🎨 $1')
+
+const getThemesKeyboard = () => {
+  let cache
+  return themes
+    .map((theme, idx) => {
+      if (!(idx % 2)) {
+        cache = getThemeName(theme)
+        return idx - 1 < themes.length ? false : cache
+      }
+      return [cache, getThemeName(theme)]
+    })
+    .filter(theme => !!theme)
+}
+
 const knex = Knex(dbConfig.development)
 ChatModel.knex(knex)
+UserModel.knex(knex)
 
 const server = express()
 const bot = new Telegraf(_env.BOT_TOKEN, { telegram: { webhookReply: true } })
@@ -65,13 +100,47 @@ https
   .createServer(tlsOptions, server)
   .listen(_env.WEBHOOK_PORT, _env.WEBHOOK_DOMAIN)
 
-bot.start(() => {
+bot.start((ctx) => {
   console.log('Started!')
+  console.log(ctx.update.message)
+  if (isPrivateChat(ctx)) {
+    UserModel.query()
+      .findById(getChatUser(ctx).id)
+      .then(user => user
+        ? ctx.replyWithMarkdown(
+          messages.welcomeUser(user)
+        )
+        : UserModel.query()
+          .insert({ ...getChatUser(ctx), theme: 'github' })
+          .then((user) => ctx.replyWithMarkdown(
+            messages.welcomeUser(user)
+          ))
+          .catch(err => console.log(err))
+      )
+      .catch(err => console.log(err))
+  }
+  const chatUser = ctx.update.message.from
+  console.log(chatUser)
 })
 
-// bot.on('text', (ctx) => {
-//   ctx.reply('Hey there!')
-// })
+bot.hears([/^🎨 (.*)$/], (ctx) => {
+  const theme = getThemeSlug(ctx.match[1])
+
+  if (themes.includes(theme)) {
+    ctx.reply()
+  }
+})
+
+bot.command('theme', (ctx) => {
+  console.log(ctx.update.message)
+  if (isPrivateChat(ctx)) {
+    return ctx.reply(
+      messages.themeChoose,
+      Markup.keyboard(getThemesKeyboard()).oneTime().resize().extra()
+    )
+  }
+  return ctx.reply(messages.themeGroup)
+})
 
 bot.on(['new_chat_members'], (ctx) => {
   console.log(ctx.update.message)

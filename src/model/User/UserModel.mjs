@@ -5,20 +5,29 @@ const snakeCaseMappers = Objection.snakeCaseMappers
 
 class UserModel extends Model {
 
-  static tableName = 'users';
+  static get tableName () {
+    return 'users'
+  }
 
-  static columnNameMappers = snakeCaseMappers();
+  static get columnNameMappers () {
+    return snakeCaseMappers()
+  }
 
-  static defaultEagerAlgorithm = Model.JoinEagerAlgorithm;
+  static get defaultEagerAlgorithm () {
+    return Model.JoinEagerAlgorithm
+  }
 
   static get jsonSchema () {
     return {
       type: 'object',
-      required: ['telegramId', 'name', 'theme'],
+      required: ['id', 'username'],
       properties: {
         id: { type: 'integer' },
-        name: { type: 'string', minLength: 1, maxLength: 255 },
-        theme: { type: 'string', minLength: 1, maxLength: 40 },
+        firstName: { type: 'string', maxLength: 255 },
+        lastName: { type: 'string', maxLength: 255 },
+        username: { type: 'string', minLength: 1, maxLength: 255 },
+        languageCode: { type: 'string', maxLength: 2, default: 'en' },
+        theme: { type: 'string', maxLength: 40, default: 'github' },
         createdAt: { type: 'datetime' },
         updatedAt: { type: 'datetime' },
       },
@@ -26,11 +35,11 @@ class UserModel extends Model {
   }
 
   $beforeInsert () {
-    this.createdAt = new Date().toISOString()
+    this.createdAt = new Date()
   }
 
   $beforeUpdate () {
-    this.updatedAt = new Date().toISOString()
+    this.updatedAt = new Date()
   }
 
 }
