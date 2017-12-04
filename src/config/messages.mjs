@@ -4,13 +4,13 @@ const _env = dotenv.config().parsed
 export default {
   themeChoose: 'Select the theme for all your codes, even those that you send in groups, they are sorted by popularity:',
 
-  themeGroup: `To configure the theme of your code send me the command in private: @${_env.BOT_USER}`,
+  themeGroup: `To configure the theme of your code send me the command in private: @${_env.BOT_USER.replace(/_/g, '\\_')}`,
 
-  welcomeGroup: `Hello!
+  welcomeGroup: () => `Hello!
 
 If you send pieces of programming code with \`fixed-width code\` format in this group, I'll send a picture with syntax highlighting for easy reading.
 
-You can also send me in private any code without the need of the \`fixed-width code\` format, try it: @${_env.BOT_USER}.
+You can also send me in private any code without the need of the \`fixed-width code\` format, try it: @${_env.BOT_USER.replace(/_/g, '\\_')}.
 
 _If I am not working, try it privately, I don't like sending error messages in groups._`,
 

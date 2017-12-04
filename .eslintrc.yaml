@@ -32,3 +32,5 @@ rules:
     - 0
   no-var:
     - 2
+  no-return-assign:
+    - 2

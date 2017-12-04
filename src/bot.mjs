@@ -2,16 +2,17 @@ import fs from 'fs'
 import path from 'path'
 import Knex from 'knex'
 import https from 'https'
-// import crypto from 'crypto'
+import crypto from 'crypto'
 import dotenv from 'dotenv'
-// import rimraf from 'rimraf'
 import express from 'express'
-// import webshot from 'webshot'
-// import sizeOf from 'image-size'
-// import highlight from 'highlight.js'
-// import bodyParser from 'body-parser'
+import webshot from 'webshot'
+import sizeOf from 'image-size'
 import Telegraf from 'telegraf'
+import highlight from 'highlight.js'
 import Markup from 'telegraf/markup'
+
+// import rimraf from 'rimraf'
+// import bodyParser from 'body-parser'
 // import Objection from 'objection'
 
 import dbConfig from '../knexfile'
@@ -29,17 +30,12 @@ const tlsOptions = {
   cert: fs.readFileSync(path.resolve(_env.WEBHOOK_CERT)),
 }
 
-// const md5 = (string) => crypto.createHash('md5').update(string).digest('hex')
 
-// const getFileName = (body, theme) => `${md5(body)}_${theme}.jpg`
+const md5 = (string) => crypto.createHash('md5').update(string).digest('hex')
 
-const isPrivateChat = (ctx) => ctx.update.message.chat.type === 'private'
+const getFileName = (body, theme) => `${md5(body)}_${theme}.jpg`
 
-const getChatUser = (ctx) => {
-  const user = ctx.update.message.from
-  delete user.is_bot
-  return user
-}
+const getPath = (file) => path.resolve(`../images/${file}`)
 
 const getThemeSlug = (name) => name
   .split(' ')
@@ -51,6 +47,59 @@ const getThemeName = (theme) => theme
   .map(word => word.charAt(0).toUpperCase() + word.slice(1))
   .join(' ')
   .replace(/(^.*$)/, '🎨 $1')
+
+const demoCode = (theme) => `
+function syntaxHighlightBot(block, cls) {
+  // Preview theme: ${getThemeName(theme)}
+  // http://t.me/SyntaxHighlightBot
+  try {
+    if (cls.search(/\\bno\\-highlight\\b/) != -1)
+      return process(block, true, 0x0F) +
+             \` class="\\$\\{cls\\}"\`;
+  } catch (e) {
+    /* handle exception */
+  }
+  for (var i = 0 / 2; i < classes.length; i++) {
+    if (checkCondition(classes[i]) === undefined)
+      console.log('undefined');
+  }
+}
+export  syntaxHighlightBot;
+`
+
+const isExisted = (file) => fs.existsSync(file)
+
+const getFileURL = (file) => `${url}/${file}`
+
+const getImageWidth = (file) => sizeOf(getPath(file)).width
+
+const getImageHeight = (file) => sizeOf(getPath(file)).height
+
+const getPhotoData = (file, idx = null) => ({
+  'type': 'photo',
+  'photo_url': getFileURL(file),
+  'thumb_url': getFileURL(file),
+  'photo_width': getImageWidth(file),
+  'photo_height': getImageHeight(file),
+  'id': file + (idx || ''),
+})
+
+const htmlhighlight = (body, lang) => !lang
+  ? highlight.highlightAuto(body)
+  : highlight.highlight(lang, body)
+
+const getCssFilePath = (theme) => path
+  .resolve(`node_modules/highlight.js/styles/${theme}.css`)
+
+const readCss = (theme, cb) => fs.readFile(getCssFilePath(theme), 'utf8', cb)
+
+const isPrivateChat = (ctx) => ctx.message.chat.type === 'private'
+
+const getChatUser = (ctx) => {
+  const user = ctx.message.from
+  delete user.is_bot
+  return user
+}
 
 const getThemesKeyboard = (themes) => {
   let cache
@@ -72,13 +121,6 @@ UserModel.knex(knex)
 const server = express()
 const bot = new Telegraf(_env.BOT_TOKEN, { telegram: { webhookReply: true } })
 
-bot.use((ctx, next) => {
-  const start = new Date()
-  return next(ctx).then(() => {
-    console.log(`Response time ${(new Date()) - start}ms`)
-  })
-})
-
 server.use(bot.webhookCallback(`/${_env.WEBHOOK_PATH}`))
 
 server.post(
@@ -97,46 +139,112 @@ https
   .createServer(tlsOptions, server)
   .listen(_env.WEBHOOK_PORT, _env.WEBHOOK_DOMAIN)
 
+// Log middleware
+bot.use((ctx, next) => {
+  const start = new Date()
+  return next(ctx).then(() => {
+    console.log(ctx.message)
+    console.log(`Response time ${(new Date()) - start}ms`)
+  })
+})
+
+// User middleware
+bot.use((ctx, next) => {
+  UserModel.query()
+    .findById(getChatUser(ctx).id)
+    .then(user => {
+      if (user) {
+        ctx.state.user = user
+        ctx.replyWithMarkdown(
+          messages.welcomeUser(user),
+          Markup.removeKeyboard().extra()
+        )
+        next(ctx)
+        return user
+      }
+      UserModel.query()
+        .insert({ ...getChatUser(ctx), theme: 'github' })
+        .then((user) => {
+          ctx.state.user = user
+          ctx.replyWithMarkdown(
+            messages.welcomeUser(user),
+            Markup.removeKeyboard().extra()
+          )
+          next(ctx)
+          return user
+        })
+        .catch(err => console.log(err))
+    })
+    .catch(err => console.log(err))
+})
+
 // Start command
 bot.start((ctx) => {
-  console.log('Started!')
-  console.log(ctx.update.message)
-  if (isPrivateChat(ctx)) {
-    UserModel.query()
-      .findById(getChatUser(ctx).id)
-      .then(user => user
-        ? ctx.replyWithMarkdown(
-          messages.welcomeUser(user)
-        )
-        : UserModel.query()
-          .insert({ ...getChatUser(ctx), theme: 'github' })
-          .then((user) => ctx.replyWithMarkdown(
-            messages.welcomeUser(user)
-          ))
-          .catch(err => console.log(err))
-      )
-      .catch(err => console.log(err))
-  }
+  console.log(ctx.state.user)
+  // if (isPrivateChat(ctx)) {
+  // }
 })
 
 // Theme choose command
-bot.hears([/^🎨 (.+)$/], (ctx) => {
+bot.hears(/^🎨 (.+)$/, (ctx) => {
   const theme = getThemeSlug(ctx.match[1])
+  const file = getPath(getFileName(demoCode(theme), theme))
 
-  if (themes.includes(theme)) {
-    ctx.reply('Choosen ' + theme, Markup.inlineKeyboard([
-      Markup.callbackButton('Apply theme', 'applyTheme'),
-    ]).extra())
+  if (themes.includes(theme) && isExisted(file)) {
+    readCss(theme, (err, data) => {
+      if (err) console.log(err)
+
+      const html = `<html lang="en">
+<head>
+<style>
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  ${data}
+  #code {
+    white-space: pre-wrap;
+    font-size: 12pt;
+    font-family: 'Inconsolata';
+  }
+</style>
+</head>
+<body style="display: inline-block;">
+  <pre style="max-width:1400px">
+    <code class="hljs" id="code">${htmlhighlight.value}</code>
+  </pre>
+</body>
+</html>
+    `
+      webshot(html, file, {
+        siteType: 'html',
+        captureSelector: '#code',
+        quality: 100,
+        shotSize: { width: 'all', height: 'all' },
+      }, (err) => {
+        if (err) console.log(err)
+        return ctx.replyWithPhoto(file, Markup
+          .inlineKeyboard([
+            Markup.callbackButton('Apply theme', `applyTheme ${theme}`),
+          ])
+          .removeKeyboard()
+          .extra()
+        )
+      })
+    })
+
   }
 })
 
-bot.hears([/^\/apply (.+)$/], (ctx) => {
+// Theme apply action
+bot.action(/^applyTheme (.+)$/, (ctx) => {
   console.log(ctx.match)
-  console.log(ctx.update.message)
+  console.log(ctx.message)
 })
 
+// Theme list show
 bot.command('theme', (ctx) => {
-  console.log(ctx.update.message)
+  console.log(ctx.message)
+  // console.log(ctx.message)
   if (isPrivateChat(ctx)) {
     return ctx.reply(
       messages.themeChoose,
@@ -147,19 +255,21 @@ bot.command('theme', (ctx) => {
 })
 
 bot.on(['new_chat_members'], (ctx) => {
-  console.log(ctx.update.message)
-  if (ctx.update.message.new_chat_member.username === _env.BOT_USER) {
+  console.log(ctx.message)
+  const message = ctx.message
+
+  if (message.new_chat_member.username === _env.BOT_USER) {
     ChatModel.query()
-      .findById(ctx.update.message.chat.id)
+      .findById(message.chat.id)
       .then(chat => {
         return chat
           ? ChatModel.query()
             .patchAndFetchById(chat.id, { active: true })
-            .then(() => ctx.replyWithMarkdown(messages.welcomeGroup))
+            .then(() => ctx.replyWithMarkdown(messages.welcomeGroup()))
             .catch(err => console.log(err))
           : ChatModel.query()
-            .insert({ ...ctx.update.message.chat, active: true })
-            .then(() => ctx.replyWithMarkdown(messages.welcomeGroup))
+            .insert({ ...message.chat, active: true })
+            .then(() => ctx.replyWithMarkdown(messages.welcomeGroup()))
             .catch(err => console.log(err))
       })
       .catch(err => console.log(err))
@@ -167,10 +277,12 @@ bot.on(['new_chat_members'], (ctx) => {
 })
 
 bot.on(['left_chat_member'], (ctx) => {
-  console.log(ctx.update.message)
-  if (ctx.update.message.left_chat_member.username === _env.BOT_USER) {
+  console.log(ctx.message)
+  const message = ctx.message
+
+  if (message.left_chat_member.username === _env.BOT_USER) {
     ChatModel.query()
-      .findById(ctx.update.message.chat.id)
+      .findById(message.chat.id)
       .then(chat => ChatModel.query()
         .patchAndFetchById(chat.id, { active: false })
         .then()
@@ -188,26 +300,6 @@ bot.on(['left_chat_member'], (ctx) => {
 
 // })
 
-// const md5 = (string) => crypto.createHash('md5').update(string).digest('hex')
-
-// const getPath = (file) => path.resolve(`../images/${file}`)
-
-// const isExisted = (file) => fs.existsSync(file)
-
-// const getFileURL = (file) => `${url}/${file}`
-
-// const getImageWidth = (file) => sizeOf(getPath(file)).width
-
-// const getImageHeight = (file) => sizeOf(getPath(file)).height
-
-// const getPhotoData = (file, idx = null) => ({
-//   'type': 'photo',
-//   'photo_url': getFileURL(file),
-//   'thumb_url': getFileURL(file),
-//   'photo_width': getImageWidth(file),
-//   'photo_height': getImageHeight(file),
-//   'id': file + (idx || ''),
-// })
 
 // http.createServer(function (request, response) {
 //   console.log(JSON.stringify(request.headers))
