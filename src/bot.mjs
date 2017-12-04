@@ -14,6 +14,7 @@ import Telegraf from 'telegraf'
 import Markup from 'telegraf/markup'
 // import Objection from 'objection'
 
+import dbConfig from '../knexfile'
 import themes from './config/themes'
 import messages from './config/messages'
 
@@ -23,12 +24,14 @@ import ChatModel from './model/Chat/ChatModel'
 
 const _env = dotenv.config().parsed
 
-import dbConfig from '../knexfile'
-
 const tlsOptions = {
   key: fs.readFileSync(path.resolve(_env.WEBHOOK_KEY)),
   cert: fs.readFileSync(path.resolve(_env.WEBHOOK_CERT)),
 }
+
+// const md5 = (string) => crypto.createHash('md5').update(string).digest('hex')
+
+// const getFileName = (body, theme) => `${md5(body)}_${theme}.jpg`
 
 const isPrivateChat = (ctx) => ctx.update.message.chat.type === 'private'
 
@@ -49,7 +52,7 @@ const getThemeName = (theme) => theme
   .join(' ')
   .replace(/(^.*$)/, '🎨 $1')
 
-const getThemesKeyboard = () => {
+const getThemesKeyboard = (themes) => {
   let cache
   return themes
     .map((theme, idx) => {
@@ -76,18 +79,12 @@ bot.use((ctx, next) => {
   })
 })
 
-// parse the updates to JSON
 server.use(bot.webhookCallback(`/${_env.WEBHOOK_PATH}`))
 
-// server.get('/', (req, res) => {
-//   console.log(req)
-//   res.send(bot.telegram.getWebhookInfo())
-//   res.sendStatus(200)
-// })
-
-server.post(`/${_env.WEBHOOK_PATH}`, (req, res) => {
-  bot.handleUpdate(req.body, res)
-})
+server.post(
+  `/${_env.WEBHOOK_PATH}`,
+  (req, res) => bot.handleUpdate(req.body, res)
+)
 
 // Set telegram webhook
 bot.telegram.setWebhook(
@@ -100,6 +97,7 @@ https
   .createServer(tlsOptions, server)
   .listen(_env.WEBHOOK_PORT, _env.WEBHOOK_DOMAIN)
 
+// Start command
 bot.start((ctx) => {
   console.log('Started!')
   console.log(ctx.update.message)
@@ -119,16 +117,22 @@ bot.start((ctx) => {
       )
       .catch(err => console.log(err))
   }
-  const chatUser = ctx.update.message.from
-  console.log(chatUser)
 })
 
-bot.hears([/^🎨 (.*)$/], (ctx) => {
+// Theme choose command
+bot.hears([/^🎨 (.+)$/], (ctx) => {
   const theme = getThemeSlug(ctx.match[1])
 
   if (themes.includes(theme)) {
-    ctx.reply()
+    ctx.reply('Choosen ' + theme, Markup.inlineKeyboard([
+      Markup.callbackButton('Apply theme', 'applyTheme'),
+    ]).extra())
   }
+})
+
+bot.hears([/^\/apply (.+)$/], (ctx) => {
+  console.log(ctx.match)
+  console.log(ctx.update.message)
 })
 
 bot.command('theme', (ctx) => {
@@ -136,7 +140,7 @@ bot.command('theme', (ctx) => {
   if (isPrivateChat(ctx)) {
     return ctx.reply(
       messages.themeChoose,
-      Markup.keyboard(getThemesKeyboard()).oneTime().resize().extra()
+      Markup.keyboard(getThemesKeyboard(themes)).oneTime().resize().extra()
     )
   }
   return ctx.reply(messages.themeGroup)
