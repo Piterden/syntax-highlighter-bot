@@ -1,5 +1,18 @@
+import fs from 'fs'
+import path from 'path'
 import dotenv from 'dotenv'
+import highlight from 'highlight.js'
+
 const _env = dotenv.config().parsed
+
+const getCssFilePath = (theme) => path
+  .resolve(`node_modules/highlight.js/styles/${theme}.css`)
+
+const readCss = (theme) => fs.readFileSync(getCssFilePath(theme))
+
+const htmlhighlight = (body, lang) => lang
+  ? highlight.highlight(lang, body).value
+  : highlight.highlightAuto(body).value
 
 export default {
   themeChoose: 'Select the theme for all your codes, even those that you send in groups, they are sorted by popularity:',
@@ -23,4 +36,45 @@ You could send me some chunks of a programming code and then, you would receive 
 - *Languages:* I detect the language automatically, but if it does not work for some code, you can always specify the language. Do it now: /langs
 - *Themes:* To each his own. Select your preferred theme, the one you select will be used when you generate codes here, in groups and in inline mode. Start now: /theme
 - *Inline mode:* just type my username in any chat to check your recent codes or keep typing code to create a new one quickly (similar to the use of @gif etc.)`,
+
+  getHtml: (theme, demoCode) => `<html lang="en">
+<head>
+<style>
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  ${readCss(theme)}
+  #code {
+    white-space: pre-wrap;
+    font-size: 12pt;
+    font-family: 'Inconsolata';
+  }
+</style>
+</head>
+<body style="display: inline-block;">
+  <pre style="max-width:1400px">
+    <code class="hljs" id="code">${htmlhighlight(demoCode(theme))}</code>
+  </pre>
+</body>
+</html>`,
+
+  demoCode: (theme) => `function syntaxHighlightBot(block, cls) {
+  /**
+   * Preview theme: ${theme}
+   * http://t.me/SyntaxHighlightBot
+   */
+  try {
+    if (cls.search(/\\bno\\-highlight\\b/) != -1)
+      return process(block, true, 0x0F) + \` class="\\$\\{cls\\}"\`;
+  } catch (e) {
+    /* handle exception */
+  }
+
+  for (var i = 0 / 2; i < classes.length; i++) {
+    if (checkCondition(classes[i]) === undefined) {
+      console.log('undefined'); // log
+    }
+  }
+}
+export  syntaxHighlightBot;`
 }
