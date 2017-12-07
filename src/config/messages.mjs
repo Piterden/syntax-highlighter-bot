@@ -15,9 +15,15 @@ const htmlhighlight = (body, lang) => lang
   : highlight.highlightAuto(body).value
 
 export default {
+
+  themeChanged: (user) => `Congratulations *${user.firstName}*, your default theme was changed to *${user.theme}*!`,
+
+
   themeChoose: 'Select the theme for all your codes, even those that you send in groups, they are sorted by popularity:',
 
+
   themeGroup: `To configure the theme of your code send me the command in private: @${_env.BOT_USER.replace(/_/g, '\\_')}`,
+
 
   welcomeGroup: () => `Hello!
 
@@ -27,15 +33,21 @@ You can also send me in private any code without the need of the \`fixed-width c
 
 _If I am not working, try it privately, I don't like sending error messages in groups._`,
 
+
   welcomeUser: (user) => `Welcome, ${user.firstName} ${user.lastName}!
 
-You could send me some chunks of a programming code and then, you would receive it highlighted, as an image for easy reading.
+You can send to me chunks of a programming code, then you will receive it highlighted, as an image, for easy reading.
 
 *Features:*
+
 - *Groups:* Add me to a group, I'll help everyone to understand those pieces of code.
+
 - *Languages:* I detect the language automatically, but if it does not work for some code, you can always specify the language. Do it now: /langs
+
 - *Themes:* To each his own. Select your preferred theme, the one you select will be used when you generate codes here, in groups and in inline mode. Start now: /theme
+
 - *Inline mode:* just type my username in any chat to check your recent codes or keep typing code to create a new one quickly (similar to the use of @gif etc.)`,
+
 
   getHtml: (theme, demoCode) => `<html lang="en">
 <head>
@@ -47,7 +59,7 @@ You could send me some chunks of a programming code and then, you would receive 
   #code {
     white-space: pre-wrap;
     font-size: 12pt;
-    font-family: 'Inconsolata';
+    font-family: monospace;
   }
 </style>
 </head>
@@ -57,6 +69,7 @@ You could send me some chunks of a programming code and then, you would receive 
   </pre>
 </body>
 </html>`,
+
 
   demoCode: (theme) => `function syntaxHighlightBot(block, cls) {
   /**
@@ -76,5 +89,5 @@ You could send me some chunks of a programming code and then, you would receive 
     }
   }
 }
-export  syntaxHighlightBot;`
+export  syntaxHighlightBot;`,
 }

@@ -71,10 +71,11 @@ const getFileURL = (file) => `${url}${file.match(/(images\/.+)$/)[1] || file}`
 //   ? highlight.highlight(lang, body).value
 //   : highlight.highlightAuto(body).value
 
-const isPrivateChat = (ctx) => ctx.message.chat.type === 'private'
+const isPrivateChat = (ctx) => ctx.chat.type === 'private'
 
-const getChatUser = (ctx) => {
-  const user = ctx.message.from
+const chatUser = (ctx) => {
+  if (!ctx.from) return false
+  const user = { ...{}, ...ctx.from }
   delete user.is_bot
   return user
 }
@@ -108,10 +109,7 @@ server.post(
 )
 
 // Set telegram webhook
-bot.telegram.setWebhook(
-  `${url}${_env.WEBHOOK_PATH}`,
-  tlsOptions.cert
-)
+bot.telegram.setWebhook(`${url}${_env.WEBHOOK_PATH}`, tlsOptions.cert)
 
 // Start Express Server
 https
@@ -122,127 +120,160 @@ https
 bot.use((ctx, next) => {
   const start = new Date()
   return next(ctx).then(() => {
-    console.log('\n\n')
     console.log(ctx.message)
+    console.log('\n')
+    console.log(ctx.from)
+    console.log('\n')
     console.log(`Response time ${(new Date()) - start}ms`)
-    // console.log('\n\n')
+    console.log('\n----------------------------------------\n')
   })
 })
 
 // User middleware
-bot.use((ctx, next) => ctx.state.user
-  ? ctx.state.user
-  : UserModel.query()
-    .findById(getChatUser(ctx).id)
+bot.use((ctx, next) => {
+  if (ctx.state.user) {
+    return next(ctx)
+  }
+  UserModel.query()
+    .findById(chatUser(ctx).id)
     .then(user => {
       if (user) {
         ctx.state.user = user
         return next(ctx)
       }
       UserModel.query()
-        .insert({ ...getChatUser(ctx), theme: 'github' })
+        .insert({ ...chatUser(ctx), theme: 'github' })
         .then((user) => {
           ctx.state.user = user
           return next(ctx)
         })
-        .catch(err => console.log(err))
+        .catch(() => {
+          // console.log(err)
+          return next(ctx)
+        })
     })
-    .catch(err => console.log(err))
-)
+    .catch(() => {
+      // console.log(err)
+      return next(ctx)
+    })
+})
 
-// Start command
-bot.start((ctx, next) =>
-  isPrivateChat(ctx)
-    ? ctx.replyWithMarkdown(
+/**
+ * Start bot command
+ */
+bot.start((ctx) => {
+  if (isPrivateChat(ctx)) {
+    return ctx.replyWithMarkdown(
       messages.welcomeUser(ctx.state.user),
       Markup.removeKeyboard().extra()
-    )
-    : next(ctx)
-)
-
-// Theme choose command
-bot.hears(/^🎨 (.+)/, (ctx) => {
-  const theme = getThemeSlug(ctx.match[1])
-
-  if (themes.includes(theme)) {
-    const filePath = getPath(
-      getFileName(messages.demoCode(getThemeName(theme)), theme)
-    )
-    const html = messages.getHtml(theme, messages.demoCode)
-
-    webshot(
-      html,
-      filePath,
-      {
-        siteType: 'html',
-        captureSelector: '#code',
-        quality: 100,
-        shotSize: { width: 'all', height: 'all' },
-      },
-      (err) => {
-        if (err) console.log(err)
-
-        ctx.replyWithChatAction('upload_photo')
-
-        ctx.replyWithPhoto(
-          { url: getFileURL(filePath) },
-          Markup
-            .inlineKeyboard([
-              Markup.callbackButton('Apply theme', `applyTheme ${theme}`),
-            ])
-            .removeKeyboard()
-            .extra()
-        )
-      }
     )
   }
 })
 
-// Theme apply action
-bot.action(/^applyTheme (.+)$/, (ctx) => {
-  console.log(ctx.match)
+/**
+ * Themes list show
+ */
+bot.command('theme', (ctx) => isPrivateChat(ctx)
+  ? ctx.reply(
+    messages.themeChoose,
+    Markup.keyboard(getThemesKeyboard(themes)).oneTime().resize().extra()
+  )
+  : ctx.reply(messages.themeGroup)
+)
+
+/**
+ * Theme choose command
+ */
+bot.hears(/^🎨 (.+)/, (ctx) => {
+  const theme = getThemeSlug(ctx.match[1])
+
+  if (!themes.includes(theme)) {
+    return
+  }
+
+  const filePath = getPath(
+    getFileName(messages.demoCode(getThemeName(theme)), theme)
+  )
+
+  webshot(
+    messages.getHtml(theme, messages.demoCode),
+    filePath,
+    {
+      siteType: 'html',
+      captureSelector: '#code',
+      quality: 100,
+      shotSize: { width: 'all', height: 'all' },
+    },
+    (err) => {
+      if (err) {
+        return console.log(err)
+      }
+
+      ctx.replyWithChatAction('upload_photo')
+      ctx.replyWithPhoto(
+        { url: getFileURL(filePath) },
+        Markup
+          .inlineKeyboard([
+            Markup.callbackButton('Apply theme', `/apply/${theme}`),
+          ])
+          .removeKeyboard()
+          .extra()
+      )
+    }
+  )
 })
 
-// Theme list show
-bot.command('theme', (ctx) =>
-  isPrivateChat(ctx)
-    ? ctx.reply(
-      messages.themeChoose,
-      Markup.keyboard(getThemesKeyboard(themes)).oneTime().resize().extra()
-    )
-    : ctx.reply(messages.themeGroup)
+/**
+ * Save theme
+ */
+bot.action(/^\/apply\/(.+)$/, (ctx) => UserModel.query()
+  .patchAndFetchById(chatUser(ctx).id, { theme: ctx.match[1] })
+  .then((user) => ctx.replyWithMarkdown(
+    messages.themeChanged(user),
+    Markup.removeKeyboard().extra()
+  ))
+  .catch((err) => console.log(err))
 )
 
-bot.on(['new_chat_members'], (ctx, next) =>
-  ctx.message.new_chat_member.username === _env.BOT_USER
-    ? ChatModel.query()
-      .findById(ctx.message.chat.id)
-      .then(chat => chat
-        ? ChatModel.query()
-          .patchAndFetchById(chat.id, { active: true })
-          .then(() => ctx.replyWithMarkdown(messages.welcomeGroup()))
-          .catch(err => console.log(err))
-        : ChatModel.query()
-          .insert({ ...ctx.message.chat, active: true })
-          .then(() => ctx.replyWithMarkdown(messages.welcomeGroup()))
-          .catch(err => console.log(err))
-      )
-      .catch(err => console.log(err))
-    : next(ctx)
-)
-
-bot.on(['left_chat_member'], (ctx, next) =>
-  ctx.message.left_chat_member.username === _env.BOT_USER
-    ? ChatModel.query()
-      .findById(ctx.message.chat.id)
-      .then(chat => ChatModel.query()
-        .patchAndFetchById(chat.id, { active: false })
-        .then()
+/**
+ * Bot was added to a group
+ */
+bot.on(['new_chat_members'], (ctx) => {
+  if (ctx.message.new_chat_member.username !== _env.BOT_USER) {
+    return
+  }
+  ChatModel.query()
+    .findById(ctx.chat.id)
+    .then(chat => chat
+      ? ChatModel.query()
+        .patchAndFetchById(chat.id, { active: true })
+        .then(() => ctx.replyWithMarkdown(messages.welcomeGroup()))
         .catch(err => console.log(err))
-      )
-      .catch(err => console.log(err))
-    : next(ctx)
-)
+      : ChatModel.query()
+        .insert({
+          id: ctx.chat.id,
+          title: ctx.chat.title,
+          type: ctx.chat.type,
+          active: true,
+        })
+        .then(() => ctx.replyWithMarkdown(messages.welcomeGroup()))
+        .catch(err => console.log(err))
+    )
+    .catch(err => console.log(err))
+})
+
+/**
+ * Bot was removed from group
+ */
+bot.on(['left_chat_member'], (ctx) => {
+  if (ctx.message.left_chat_member.username !== _env.BOT_USER) {
+    return
+  }
+  ChatModel.query()
+    .patchAndFetchById(ctx.chat.id, { active: false })
+    .then()
+    .catch(err => console.log(err))
+})
 
 // bot.on('callback_query', (ctx) => {
 
