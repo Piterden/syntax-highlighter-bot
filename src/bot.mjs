@@ -82,13 +82,13 @@ const chatUser = (ctx) => {
 
 const getThemesKeyboard = (themes, cache = '') => themes
   .map((theme, idx) => {
-    if (!(idx % 2)) {
+    if ((idx + 1) % 2) {
       cache = `🎨 ${getThemeName(theme)}`
       return idx - 1 < themes.length ? false : cache
     }
     return [cache, `🎨 ${getThemeName(theme)}`]
   })
-  .filter(theme => !!theme)
+  .filter(Boolean)
 
 // const langs = highlight.listLanguages()
 
