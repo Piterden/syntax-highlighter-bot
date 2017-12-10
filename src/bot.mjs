@@ -16,9 +16,8 @@ import Markup from 'telegraf/markup'
 // import Objection from 'objection'
 
 import dbConfig from '../knexfile'
-// import themes from './config/themes'
 import messages from './config/messages'
-import { themes } from './config/messages'
+import { themes, langs } from './config/messages'
 
 // import UseModel from './model/Use/UseModel'
 import UserModel from './model/User/UserModel'
@@ -49,7 +48,8 @@ const getThemeName = (slug) => slug
   .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
   .join(' ')
 
-const getFileName = (body, theme) => `${md5(body)}_${getThemeSlug(theme)}.jpg`
+const getImageFileName = (body, theme) =>
+  `${md5(body)}_${getThemeSlug(theme)}.jpg`
 
 // const isExisted = (file) => fs.existsSync(file)
 
@@ -81,7 +81,7 @@ const chatUser = (ctx) => {
   return user
 }
 
-const getThemesKeyboard = (themes, cache = '') => themes
+const themesKeyboard = (themes, cache = '') => themes
   .map((theme, idx) => {
     if ((idx + 1) % 2) {
       cache = `🎨 ${getThemeName(theme)}`
@@ -91,6 +91,7 @@ const getThemesKeyboard = (themes, cache = '') => themes
   })
   .filter(Boolean)
 
+const onError = (err) => console.log(err)
 // const langs = highlight.listLanguages()
 
 const knex = Knex(dbConfig.development)
@@ -146,16 +147,16 @@ bot.use((ctx, next) => {
         .insert({ ...chatUser(ctx), theme: 'github' })
         .then((user) => {
           ctx.state.user = user
-          return next(ctx)
+          // return next(ctx)
         })
-        .catch(() => {
-          // console.log(err)
-          return next(ctx)
+        .catch((err) => {
+          console.log(err)
+          // return next(ctx)
         })
     })
-    .catch(() => {
-      // console.log(err)
-      return next(ctx)
+    .catch((err) => {
+      console.log(err)
+      // return next(ctx)
     })
 })
 
@@ -174,30 +175,34 @@ bot.start((ctx) => {
 /**
  * Themes list show
  */
-bot.command('theme', (ctx) => isPrivateChat(ctx)
-  ? ctx.reply(
-    messages.themeChoose,
-    Markup.keyboard(getThemesKeyboard(themes)).oneTime().resize().extra()
-  )
-  : ctx.reply(messages.themeGroup)
-)
+bot.command('theme', (ctx) => {
+  if (isPrivateChat(ctx)) {
+    return UserModel.query()
+      .findById(chatUser(ctx).id)
+      .then((user) => {
+        return ctx.replyWithMarkdown(
+          messages.themeChoose(user.theme),
+          Markup.keyboard(themesKeyboard(themes)).oneTime().resize().extra()
+        )
+      })
+      .catch(onError)
+  }
+  return ctx.reply(messages.themeGroup)
+})
 
 /**
  * Theme choose command
  */
 bot.hears(/^🎨 (.+)/, (ctx) => {
   const theme = getThemeSlug(ctx.match[1])
-
   if (!themes.includes(theme)) {
     return
   }
-
   const filePath = getPath(
-    getFileName(messages.demoCode(getThemeName(theme)), theme)
+    getImageFileName(messages.demoCode(getThemeName(theme)), theme)
   )
-
   webshot(
-    messages.getHtml(theme, messages.demoCode),
+    messages.getHtml(messages.demoCode, theme),
     filePath,
     {
       siteType: 'html',
@@ -210,7 +215,7 @@ bot.hears(/^🎨 (.+)/, (ctx) => {
         return console.log(err)
       }
       ctx.replyWithChatAction('upload_photo')
-      ctx.replyWithPhoto(
+      return ctx.replyWithPhoto(
         { url: getFileURL(filePath) },
         Markup
           .inlineKeyboard([
@@ -226,17 +231,18 @@ bot.hears(/^🎨 (.+)/, (ctx) => {
 /**
  * Save theme
  */
-bot.action(/^\/apply\/(.+)$/, (ctx) => UserModel.query()
-  .patchAndFetchById(chatUser(ctx).id, { theme: ctx.match[1] })
-  .then((user) => {
-    ctx.answerCbQuery()
-    ctx.replyWithMarkdown(
-      messages.themeChanged(user),
-      Markup.removeKeyboard().extra()
-    )
-  })
-  .catch((err) => console.log(err))
-)
+bot.action(/^\/apply\/(.+)$/, (ctx) => {
+  return UserModel.query()
+    .patchAndFetchById(chatUser(ctx).id, { theme: ctx.match[1] })
+    .then((user) => {
+      ctx.answerCbQuery()
+      ctx.replyWithMarkdown(
+        messages.themeChanged(user),
+        Markup.removeKeyboard().extra()
+      )
+    })
+    .catch(onError)
+})
 
 /**
  * Bot was added to a group
@@ -246,7 +252,6 @@ bot.on(['new_chat_members'], (ctx) => {
     return
   }
   const onSuccess = () => ctx.replyWithMarkdown(messages.welcomeGroup())
-  const onError = (err) => console.log(err)
   ChatModel.query()
     .findById(ctx.chat.id)
     .then(chat => chat
@@ -274,19 +279,56 @@ bot.on(['left_chat_member'], (ctx) => {
   if (ctx.message.left_chat_member.username !== _env.BOT_USER) {
     return
   }
-  const onError = (err) => console.log(err)
   ChatModel.query()
     .patchAndFetchById(ctx.chat.id, { active: false })
     .then()
     .catch(onError)
 })
 
-// bot.on('callback_query', (ctx) => {
+bot.entity(({ type }) => type === 'pre', (ctx) => {
+  const entity = ctx.message.entities.find((ent) => ent.type === 'pre')
+  let code = ctx.message.text.slice(entity.offset, entity.offset + entity.length)
+  const match = code.match(/^(\w+)\n/)
+  let lang = match[1]
 
-// })
+  if (match && langs.includes(match[1])) {
+    code = code.replace(new RegExp(match[0], 'i'), '')
+  }
+
+  const theme = ctx.state.user && ctx.state.user.theme || 'github'
+  const filePath = getPath(
+    getImageFileName(messages.demoCode(getThemeName(theme)), theme)
+  )
+
+  webshot(
+    messages.getHtml(code, theme, lang),
+    filePath,
+    {
+      siteType: 'html',
+      captureSelector: '#code',
+      quality: 100,
+      shotSize: { width: 'all', height: 'all' },
+    },
+    (err) => {
+      if (err) {
+        return console.log(err)
+      }
+      ctx.replyWithChatAction('upload_photo')
+      return ctx.replyWithPhoto(
+        { url: getFileURL(filePath) },
+        Markup.removeKeyboard().extra()
+      )
+    }
+  )
+})
+// console.log()
+// console.log(ctx.message)
 
 // bot.on('inline_query', (ctx) => {
+//   ctx.answerInlineQuery([1,2,3])
 
+
+//   // ctx.telegram.answerInlineQuery(ctx.inlineQuery.id, result)
 // })
 
 

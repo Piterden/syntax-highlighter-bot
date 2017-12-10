@@ -5,11 +5,6 @@ import highlight from 'highlight.js'
 
 const _env = dotenv.config().parsed
 
-export const themes = fs
-  .readdirSync(path.resolve('node_modules/highlight.js/styles'))
-  .filter((file) => file.endsWith('.css'))
-  .map((file) => file.replace('.css', ''))
-
 const getThemeCssFilePath = (theme) => path
   .resolve(`node_modules/highlight.js/styles/${theme}.css`)
 
@@ -19,12 +14,24 @@ const htmlhighlight = (body, lang) => lang
   ? highlight.highlight(lang, body).value
   : highlight.highlightAuto(body).value
 
+export const themes = fs
+  .readdirSync(path.resolve('node_modules/highlight.js/styles'))
+  .filter((file) => file.endsWith('.css'))
+  .map((file) => file.replace('.css', ''))
+
+export const langs = fs
+  .readdirSync(path.resolve('node_modules/highlight.js/lib/languages'))
+  .filter((file) => file.endsWith('.js'))
+  .map((file) => file.replace('.js', ''))
+
 export default {
 
   themeChanged: (user) => `Congratulations *${user.firstName}*, your default theme was changed to *${user.theme}*!`,
 
 
-  themeChoose: 'Select the theme for all your codes, even those that you send in groups, they are sorted by popularity:',
+  themeChoose: (theme) => `Your selected theme is *${theme}*.
+
+Select the new one theme for all your codes, even those that you send in groups:`,
 
 
   themeGroup: `To configure the theme of your code send me the command in private: @${_env.BOT_USER.replace(/_/g, '\\_')}`,
@@ -54,7 +61,7 @@ You can send to me chunks of a programming code, then you will receive it highli
 - *Inline mode:* just type my username in any chat to check your recent codes or keep typing code to create a new one quickly (similar to the use of @gif etc.)`,
 
 
-  getHtml: (theme, demoCode) => `<html lang="en">
+  getHtml: (code, theme, lang) => `<html lang="en">
 <head>
 <style>
   ::-webkit-scrollbar {
@@ -70,7 +77,7 @@ You can send to me chunks of a programming code, then you will receive it highli
 </head>
 <body style="display: inline-block;">
   <pre style="max-width:1400px">
-    <code class="hljs" id="code">${htmlhighlight(demoCode(theme))}</code>
+    <code class="hljs" id="code">${htmlhighlight(code, lang)}</code>
   </pre>
 </body>
 </html>`,
