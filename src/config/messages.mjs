@@ -5,10 +5,15 @@ import highlight from 'highlight.js'
 
 const _env = dotenv.config().parsed
 
-const getCssFilePath = (theme) => path
+export const themes = fs
+  .readdirSync(path.resolve('node_modules/highlight.js/styles'))
+  .filter((file) => file.endsWith('.css'))
+  .map((file) => file.replace('.css', ''))
+
+const getThemeCssFilePath = (theme) => path
   .resolve(`node_modules/highlight.js/styles/${theme}.css`)
 
-const readCss = (theme) => fs.readFileSync(getCssFilePath(theme))
+const readCss = (theme) => fs.readFileSync(getThemeCssFilePath(theme))
 
 const htmlhighlight = (body, lang) => lang
   ? highlight.highlight(lang, body).value

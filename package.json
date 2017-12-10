@@ -22,10 +22,10 @@
     "image-size": "^0.6.1",
     "knex": "^0.14.2",
     "mysql": "^2.15.0",
-    "nodemon": "^1.12.1",
+    "nodemon": "^1.12.5",
     "objection": "^0.9.2",
     "rimraf": "^2.6.2",
-    "telegraf": "^3.16.4",
+    "telegraf": "^3.17.1",
     "webshot": "^0.18.0"
   }
 }

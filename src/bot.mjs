@@ -16,8 +16,9 @@ import Markup from 'telegraf/markup'
 // import Objection from 'objection'
 
 import dbConfig from '../knexfile'
-import themes from './config/themes'
+// import themes from './config/themes'
 import messages from './config/messages'
+import { themes } from './config/messages'
 
 // import UseModel from './model/Use/UseModel'
 import UserModel from './model/User/UserModel'
@@ -208,7 +209,6 @@ bot.hears(/^🎨 (.+)/, (ctx) => {
       if (err) {
         return console.log(err)
       }
-
       ctx.replyWithChatAction('upload_photo')
       ctx.replyWithPhoto(
         { url: getFileURL(filePath) },
@@ -245,13 +245,15 @@ bot.on(['new_chat_members'], (ctx) => {
   if (ctx.message.new_chat_member.username !== _env.BOT_USER) {
     return
   }
+  const onSuccess = () => ctx.replyWithMarkdown(messages.welcomeGroup())
+  const onError = (err) => console.log(err)
   ChatModel.query()
     .findById(ctx.chat.id)
     .then(chat => chat
       ? ChatModel.query()
         .patchAndFetchById(chat.id, { active: true })
-        .then(() => ctx.replyWithMarkdown(messages.welcomeGroup()))
-        .catch(err => console.log(err))
+        .then(onSuccess)
+        .catch(onError)
       : ChatModel.query()
         .insert({
           id: ctx.chat.id,
@@ -259,10 +261,10 @@ bot.on(['new_chat_members'], (ctx) => {
           type: ctx.chat.type,
           active: true,
         })
-        .then(() => ctx.replyWithMarkdown(messages.welcomeGroup()))
-        .catch(err => console.log(err))
+        .then(onSuccess)
+        .catch(onError)
     )
-    .catch(err => console.log(err))
+    .catch(onError)
 })
 
 /**
@@ -272,10 +274,11 @@ bot.on(['left_chat_member'], (ctx) => {
   if (ctx.message.left_chat_member.username !== _env.BOT_USER) {
     return
   }
+  const onError = (err) => console.log(err)
   ChatModel.query()
     .patchAndFetchById(ctx.chat.id, { active: false })
     .then()
-    .catch(err => console.log(err))
+    .catch(onError)
 })
 
 // bot.on('callback_query', (ctx) => {
