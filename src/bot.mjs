@@ -289,10 +289,10 @@ bot.entity(({ type }) => type === 'pre', (ctx) => {
   const entity = ctx.message.entities.find((ent) => ent.type === 'pre')
   let code = ctx.message.text.slice(entity.offset, entity.offset + entity.length)
   const match = code.match(/^(\w+)\n/)
-  let lang = match[1]
+  let lang = match && match[1]
 
-  if (match && langs.includes(match[1])) {
-    code = code.replace(new RegExp(match[0], 'i'), '')
+  if (match && langs.includes(match && match[1])) {
+    code = code.replace(new RegExp(match && match[0], 'i'), '')
   }
 
   const theme = ctx.state.user && ctx.state.user.theme || 'github'
