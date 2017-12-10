@@ -228,10 +228,13 @@ bot.hears(/^🎨 (.+)/, (ctx) => {
  */
 bot.action(/^\/apply\/(.+)$/, (ctx) => UserModel.query()
   .patchAndFetchById(chatUser(ctx).id, { theme: ctx.match[1] })
-  .then((user) => ctx.replyWithMarkdown(
-    messages.themeChanged(user),
-    Markup.removeKeyboard().extra()
-  ))
+  .then((user) => {
+    ctx.answerCbQuery()
+    ctx.replyWithMarkdown(
+      messages.themeChanged(user),
+      Markup.removeKeyboard().extra()
+    )
+  })
   .catch((err) => console.log(err))
 )
 
