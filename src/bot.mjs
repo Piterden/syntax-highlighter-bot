@@ -173,19 +173,24 @@ bot.start((ctx) => {
 })
 
 /**
- * Themes list show
+ * Show languages list
+ */
+bot.command('langs', (ctx) => {
+  if (isPrivateChat(ctx)) {
+    return ctx.replyWithMarkdown(messages.langsList(langs))
+  }
+  return ctx.reply(messages.themeGroup)
+})
+
+/**
+ * Show themes list
  */
 bot.command('theme', (ctx) => {
   if (isPrivateChat(ctx)) {
-    return UserModel.query()
-      .findById(chatUser(ctx).id)
-      .then((user) => {
-        return ctx.replyWithMarkdown(
-          messages.themeChoose(user.theme),
-          Markup.keyboard(themesKeyboard(themes)).oneTime().resize().extra()
-        )
-      })
-      .catch(onError)
+    return ctx.replyWithMarkdown(
+      messages.themeChoose(ctx.state.user.theme),
+      Markup.keyboard(themesKeyboard(themes)).oneTime().resize().extra()
+    )
   }
   return ctx.reply(messages.themeGroup)
 })
@@ -202,7 +207,7 @@ bot.hears(/^🎨 (.+)/, (ctx) => {
     getImageFileName(messages.demoCode(getThemeName(theme)), theme)
   )
   webshot(
-    messages.getHtml(messages.demoCode, theme),
+    messages.getHtml(messages.demoCode(getThemeName(theme)), theme),
     filePath,
     {
       siteType: 'html',
@@ -285,6 +290,9 @@ bot.on(['left_chat_member'], (ctx) => {
     .catch(onError)
 })
 
+/**
+ * Catch code message
+ */
 bot.entity(({ type }) => type === 'pre', (ctx) => {
   const entity = ctx.message.entities.find((ent) => ent.type === 'pre')
   let code = ctx.message.text.slice(entity.offset, entity.offset + entity.length)
@@ -297,7 +305,7 @@ bot.entity(({ type }) => type === 'pre', (ctx) => {
 
   const theme = ctx.state.user && ctx.state.user.theme || 'github'
   const filePath = getPath(
-    getImageFileName(messages.demoCode(getThemeName(theme)), theme)
+    getImageFileName(messages.getHtml(code, theme, lang), theme)
   )
 
   webshot(
@@ -321,8 +329,6 @@ bot.entity(({ type }) => type === 'pre', (ctx) => {
     }
   )
 })
-// console.log()
-// console.log(ctx.message)
 
 // bot.on('inline_query', (ctx) => {
 //   ctx.answerInlineQuery([1,2,3])

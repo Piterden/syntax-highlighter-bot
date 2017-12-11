@@ -14,6 +14,10 @@ const htmlhighlight = (body, lang) => lang
   ? highlight.highlight(lang, body).value
   : highlight.highlightAuto(body).value
 
+const makeCols = (lang, idx) => (idx + 1) % 3
+  ? lang.replace(/^,/, '') + (new Array(16 - lang.length)).fill(' ').join('')
+  : lang + '\n'
+
 export const themes = fs
   .readdirSync(path.resolve('node_modules/highlight.js/styles'))
   .filter((file) => file.endsWith('.css'))
@@ -25,6 +29,19 @@ export const langs = fs
   .map((file) => file.replace('.js', ''))
 
 export default {
+
+  langsList: (langs) => `*Supported languages list:*
+
+\`\`\`
+${langs.map(makeCols).join('')}
+\`\`\`
+
+*Usage:*
+
+\\\`\\\`\\\`{language}
+{code}
+\\\`\\\`\\\``,
+
 
   themeChanged: (user) => `Congratulations *${user.firstName}*, your default theme was changed to *${user.theme}*!`,
 
