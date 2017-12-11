@@ -15,7 +15,7 @@ const htmlhighlight = (body, lang) => lang
   : highlight.highlightAuto(body).value
 
 const makeCols = (lang, idx) => (idx + 1) % 3
-  ? lang.replace(/^,/, '') + (new Array(16 - lang.length)).fill(' ').join('')
+  ? lang.replace(/,/g, '') + (new Array(16 - lang.length)).fill(' ').join('')
   : lang + '\n'
 
 export const themes = fs

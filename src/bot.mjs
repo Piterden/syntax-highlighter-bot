@@ -92,7 +92,13 @@ const themesKeyboard = (themes, cache = '') => themes
   .filter(Boolean)
 
 const onError = (err) => console.log(err)
-// const langs = highlight.listLanguages()
+
+const webshotOptions = {
+  siteType: 'html',
+  captureSelector: '#code',
+  quality: 100,
+  shotSize: { width: 'all', height: 'all' },
+}
 
 const knex = Knex(dbConfig.development)
 ChatModel.knex(knex)
@@ -118,20 +124,24 @@ https
   .createServer(tlsOptions, server)
   .listen(_env.WEBHOOK_PORT, _env.WEBHOOK_DOMAIN)
 
-// Log middleware
+/**
+ * Log middleware
+ */
 bot.use((ctx, next) => {
   const start = new Date()
   return next(ctx).then(() => {
     console.log(ctx.message)
-    console.log('\n')
+    console.log()
     console.log(ctx.from)
-    console.log('\n')
+    console.log()
     console.log(`Response time ${(new Date()) - start}ms`)
     console.log('\n----------------------------------------\n')
   })
 })
 
-// User middleware
+/**
+ * User middleware
+ */
 bot.use((ctx, next) => {
   if (ctx.state.user) {
     return next(ctx)
@@ -203,34 +213,24 @@ bot.hears(/^🎨 (.+)/, (ctx) => {
   if (!themes.includes(theme)) {
     return
   }
-  const filePath = getPath(
-    getImageFileName(messages.demoCode(getThemeName(theme)), theme)
-  )
-  webshot(
-    messages.getHtml(messages.demoCode(getThemeName(theme)), theme),
-    filePath,
-    {
-      siteType: 'html',
-      captureSelector: '#code',
-      quality: 100,
-      shotSize: { width: 'all', height: 'all' },
-    },
-    (err) => {
-      if (err) {
-        return console.log(err)
-      }
-      ctx.replyWithChatAction('upload_photo')
-      return ctx.replyWithPhoto(
-        { url: getFileURL(filePath) },
-        Markup
-          .inlineKeyboard([
-            Markup.callbackButton('Apply theme', `/apply/${theme}`),
-          ])
-          .removeKeyboard()
-          .extra()
-      )
+  const body = messages.demoCode(getThemeName(theme))
+  const filePath = getPath(getImageFileName(body, theme))
+
+  webshot(messages.getHtml(body, theme), filePath, webshotOptions, (err) => {
+    if (err) {
+      return console.log(err)
     }
-  )
+    ctx.replyWithChatAction('upload_photo')
+    return ctx.replyWithPhoto(
+      { url: getFileURL(filePath) },
+      Markup
+        .inlineKeyboard([
+          Markup.callbackButton('Apply theme', `/apply/${theme}`),
+        ])
+        .removeKeyboard()
+        .extra()
+    )
+  })
 })
 
 /**
@@ -297,37 +297,28 @@ bot.entity(({ type }) => type === 'pre', (ctx) => {
   const entity = ctx.message.entities.find((ent) => ent.type === 'pre')
   let code = ctx.message.text.slice(entity.offset, entity.offset + entity.length)
   const match = code.match(/^(\w+)\n/)
-  let lang = match && match[1]
+  const lang = match && match[1]
 
-  if (match && langs.includes(match && match[1])) {
+  if (match && langs.includes(lang)) {
     code = code.replace(new RegExp(match && match[0], 'i'), '')
   }
 
   const theme = ctx.state.user && ctx.state.user.theme || 'github'
+  const html = messages.getHtml(code, theme, lang)
   const filePath = getPath(
-    getImageFileName(messages.getHtml(code, theme, lang), theme)
+    getImageFileName(html, theme)
   )
 
-  webshot(
-    messages.getHtml(code, theme, lang),
-    filePath,
-    {
-      siteType: 'html',
-      captureSelector: '#code',
-      quality: 100,
-      shotSize: { width: 'all', height: 'all' },
-    },
-    (err) => {
-      if (err) {
-        return console.log(err)
-      }
-      ctx.replyWithChatAction('upload_photo')
-      return ctx.replyWithPhoto(
-        { url: getFileURL(filePath) },
-        Markup.removeKeyboard().extra()
-      )
+  webshot(html, filePath, webshotOptions, (err) => {
+    if (err) {
+      return console.log(err)
     }
-  )
+    ctx.replyWithChatAction('upload_photo')
+    return ctx.replyWithPhoto(
+      { url: getFileURL(filePath) },
+      Markup.removeKeyboard().extra()
+    )
+  })
 })
 
 // bot.on('inline_query', (ctx) => {
