@@ -30,7 +30,7 @@ export const langs = fs
 
 export default {
 
-  langsList: (langs) => `*Supported languages list:*
+  langsList: () => `*Supported languages list:*
 
 \`\`\`
 ${langs.map(makeCols).join('')}
