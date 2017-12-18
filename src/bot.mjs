@@ -14,9 +14,9 @@ import dbConfig from '../knexfile'
 import messages from './config/messages'
 import { themes, langs } from './config/messages'
 
-// import UseModel from './model/Use/UseModel'
 import UserModel from './model/User/UserModel'
 import ChatModel from './model/Chat/ChatModel'
+import ChunkModel from './model/Chunk/ChunkModel'
 
 const _env = dotenv.config().parsed
 
@@ -34,9 +34,14 @@ const webshotOptions = {
 
 const url = `https://${_env.WEBHOOK_DOMAIN}:${_env.WEBHOOK_PORT}/`
 
-const md5 = (string) => crypto.createHash('md5').update(string).digest('hex')
+const md5 = (string) =>
+  crypto.createHash('md5').update(string).digest('hex')
 
-const getPath = (file) => path.resolve(`images/${file}`)
+const getPath = (file) =>
+  path.resolve(`images/${file}`)
+
+const getTempPath = (ctx, file) =>
+  path.resolve(`images/${ctx.state.user.id}/${file}`)
 
 const getThemeSlug = (name) => name
   .split(' ')
@@ -92,11 +97,39 @@ const themesKeyboard = (themes, cache = '') => themes
   })
   .filter(Boolean)
 
+const replyWithPhoto = (ctx, path) => {
+  ctx.replyWithChatAction('upload_photo')
+  return ctx.replyWithPhoto(
+    { url: getFileURL(path) },
+    Markup.removeKeyboard().extra()
+  )
+}
+
+const makeUserFolder = (user) => {
+  const filepath = path.resolve(`images/${user.id}`)
+  if (isExisted(filepath)) return
+  fs.mkdirSync(filepath)
+}
+
 const onError = (err) => console.log(err)
 
 const knex = Knex(dbConfig.development)
 ChatModel.knex(knex)
 UserModel.knex(knex)
+ChunkModel.knex(knex)
+
+const storeChunk = (ctx, filename, source, lang) => {
+  ChunkModel.query()
+    .insert({
+      filename,
+      userId: ctx.state.user.id,
+      chatId: ctx.chat.id,
+      lang,
+      source,
+    })
+    .then()
+    .catch(onError)
+}
 
 const server = express()
 const bot = new Telegraf(_env.BOT_TOKEN, { telegram: { webhookReply: true } })
@@ -148,7 +181,11 @@ bot.use((ctx, next) => {
       }
       UserModel.query()
         .insert({ ...chatUser(ctx), theme: 'github' })
-        .then((user) => { ctx.state.user = user })
+        .then((user) => {
+          ctx.state.user = user
+          makeUserFolder(user)
+          return next(ctx)
+        })
         .catch(onError)
     })
     .catch(onError)
@@ -158,7 +195,7 @@ bot.use((ctx, next) => {
  * Start bot command
  */
 bot.start((ctx) => isPrivateChat(ctx) && ctx.replyWithMarkdown(
-  messages.welcomeUser(ctx.state.user),
+  messages.welcomeUser(ctx.state.user || chatUser(ctx)),
   Markup.removeKeyboard().extra()
 ))
 
@@ -241,21 +278,15 @@ bot.entity(({ type }) => type === 'pre', (ctx) => {
   const html = messages.getHtml(code, theme, lang)
   const imagePath = getPath(getImageFileName(html, theme))
 
+  storeChunk(ctx, getImageFileName(html, theme), code, lang || 'auto')
+
   if (isExisted(imagePath)) {
-    ctx.replyWithChatAction('upload_photo')
-    return ctx.replyWithPhoto(
-      { url: getFileURL(imagePath) },
-      Markup.removeKeyboard().extra()
-    )
+    return replyWithPhoto(ctx, imagePath)
   }
 
   webshot(html, imagePath, webshotOptions, (err) => {
     if (err) return console.log(err)
-    ctx.replyWithChatAction('upload_photo')
-    return ctx.replyWithPhoto(
-      { url: getFileURL(imagePath) },
-      Markup.removeKeyboard().extra()
-    )
+    return replyWithPhoto(ctx, imagePath)
   })
 })
 
@@ -273,15 +304,15 @@ bot.on('inline_query', (ctx) => {
   }
 
   const html = messages.getHtml(code, theme, lang)
-  const filename = getImageFileName(html, theme)
+  const imagePath = getTempPath(getImageFileName(html, theme))
 
-  if (isExisted(filename)) {
-    return ctx.answerInlineQuery([getPhotoData(filename)])
+  if (isExisted(imagePath)) {
+    return ctx.answerInlineQuery([getPhotoData(imagePath)])
   }
 
-  webshot(html, filename, webshotOptions, (err) => {
+  webshot(html, imagePath, webshotOptions, (err) => {
     if (err) return console.log(err)
-    return ctx.answerInlineQuery([getPhotoData(filename)])
+    return ctx.answerInlineQuery([getPhotoData(imagePath)])
   })
 })
 // ctx.telegram.answerInlineQuery(ctx.inlineQuery.id, result)

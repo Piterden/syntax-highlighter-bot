@@ -1,6 +1,6 @@
 
 exports.up = function (knex) {
-  return knex.schema.createTable('chats', function (table) {
+  return knex.schema.createTableIfNotExists('chats', function (table) {
     table.bigInteger('id').unique()
     table.string('title', 255).unique()
     table.string('type', 40)

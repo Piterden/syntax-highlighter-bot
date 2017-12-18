@@ -5,25 +5,30 @@ import ChatModel from '../Chat/ChatModel'
 const Model = Objection.Model
 const snakeCaseMappers = Objection.snakeCaseMappers
 
-class UseModel extends Model {
+class ChunkModel extends Model {
 
-  static tableName = 'uses';
+  static get tableName () {
+    return 'chunks'
+  }
 
-  static columnNameMappers = snakeCaseMappers();
+  static get columnNameMappers () {
+    return snakeCaseMappers()
+  }
 
-  static defaultEagerAlgorithm = Model.JoinEagerAlgorithm;
+  static get defaultEagerAlgorithm () {
+    return Model.JoinEagerAlgorithm
+  }
 
   static get jsonSchema () {
     return {
       type: 'object',
-      required: ['userId', 'chatId'],
+      required: ['filename' ,'userId', 'chatId'],
       properties: {
-        id: { type: 'integer' },
+        filename: { type: 'string' },
         userId: { type: 'integer' },
         chatId: { type: 'integer' },
         lang: { type: 'string' },
-        code: { type: 'string' },
-        image: { type: 'string' },
+        source: { type: 'string' },
         createdAt: { type: 'datetime' },
       },
     }
@@ -35,8 +40,8 @@ class UseModel extends Model {
         relation: Model.BelongsToOneRelation,
         modelClass: UserModel,
         join: {
-          from: 'UseModel.userId',
-          to: 'UserModel.id',
+          from: 'chunks.userId',
+          to: 'users.id',
         },
       },
 
@@ -44,17 +49,17 @@ class UseModel extends Model {
         relation: Model.BelongsToOneRelation,
         modelClass: ChatModel,
         join: {
-          from: 'UseModel.chatId',
-          to: 'ChatModel.id',
+          from: 'chunks.userId',
+          to: 'chats.id',
         },
       },
     }
   }
 
   $beforeInsert () {
-    this.createdAt = new Date().toISOString()
+    this.createdAt = new Date()
   }
 
 }
 
-export default UseModel
+export default ChunkModel

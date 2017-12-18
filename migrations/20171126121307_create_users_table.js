@@ -1,6 +1,6 @@
 
 exports.up = function (knex) {
-  return knex.schema.createTable('users', function (table) {
+  return knex.schema.createTableIfNotExists('users', function (table) {
     table.bigInteger('id').unique()
     table.string('first_name', 255)
     table.string('last_name', 255)

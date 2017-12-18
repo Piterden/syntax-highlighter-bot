@@ -19,7 +19,7 @@
     "dotenv": "^4.0.0",
     "express": "^4.16.2",
     "highlight.js": "^9.9.0",
-    "image-size": "^0.6.1",
+    "image-size": "^0.6.2",
     "knex": "^0.14.2",
     "mysql": "^2.15.0",
     "nodemon": "^1.13.3",
