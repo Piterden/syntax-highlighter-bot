@@ -41,7 +41,7 @@ code
 \\\`\\\`\\\``,
 
 
-  themeChanged: (user) => `Congratulations *${user.firstName}*, your default theme was changed to *${user.theme}*!`,
+  themeChanged: (user) => `Congratulations *${user.firstName || user.first_name}*, your default theme was changed to *${user.theme}*!`,
 
 
   themeChoose: (theme) => `Your selected theme is *${theme}*.

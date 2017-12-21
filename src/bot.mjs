@@ -131,6 +131,26 @@ const storeChunk = (ctx, filename, source, lang) => {
     .catch(onError)
 }
 
+const storeUser = (ctx, next) => {
+  UserModel.query()
+    .findById(chatUser(ctx).id)
+    .then(user => {
+      if (user) {
+        ctx.state.user = user
+        return next(ctx)
+      }
+      UserModel.query()
+        .insert({ ...chatUser(ctx), theme: 'github' })
+        .then((user) => {
+          ctx.state.user = user
+          makeUserFolder(user)
+          return next(ctx)
+        })
+        .catch(onError)
+    })
+    .catch(onError)
+}
+
 const server = express()
 const bot = new Telegraf(_env.BOT_TOKEN, { telegram: { webhookReply: true } })
 
@@ -171,24 +191,7 @@ bot.use((ctx, next) => {
  */
 bot.use((ctx, next) => {
   if (ctx.state.user) return next(ctx)
-
-  UserModel.query()
-    .findById(chatUser(ctx).id)
-    .then(user => {
-      if (user) {
-        ctx.state.user = user
-        return next(ctx)
-      }
-      UserModel.query()
-        .insert({ ...chatUser(ctx), theme: 'github' })
-        .then((user) => {
-          ctx.state.user = user
-          makeUserFolder(user)
-          return next(ctx)
-        })
-        .catch(onError)
-    })
-    .catch(onError)
+  storeUser(ctx, next)
 })
 
 /**
