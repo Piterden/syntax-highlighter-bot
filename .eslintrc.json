@@ -1,0 +1,51 @@
+{
+  "parser": "babel-eslint",
+  "root": true,
+  "extends": "standard",
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module",
+    "allowImportExportEverywhere": false
+  },
+  "globals": {
+    "console": true
+  },
+  "rules": {
+    "indent": [
+      2,
+      2
+    ],
+    "quotes": [
+      2,
+      "single"
+    ],
+    "linebreak-style": [
+      2,
+      "unix"
+    ],
+    "semi": [
+      1,
+      "never"
+    ],
+    "camelcase": [
+      2
+    ],
+    "comma-dangle": [
+      2,
+      "always-multiline"
+    ],
+    "no-console": [
+      0
+    ],
+    "no-var": [
+      2
+    ],
+    "no-return-assign": [
+      2
+    ]
+  }
+}

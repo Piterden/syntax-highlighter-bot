@@ -6,9 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "migrate": "npm run migrate:up",
-    "migrate:up": "knex migrate:latest",
-    "migrate:down": "knex migrate:rollback",
-    "migrate:refresh": "knex migrate:rollback && knex migrate:latest",
+    "migrate:up": "node_modules/.bin/knex migrate:latest",
+    "migrate:down": "node_modules/.bin/knex migrate:rollback",
+    "migrate:refresh": "node_modules/.bin/knex migrate:rollback && node_modules/.bin/knex migrate:latest",
     "dev": "node_modules/.bin/nodemon -V index.js",
     "watch": "node_modules/.bin/nodemon -e js,mjs,json -w src -V index.js"
   },
@@ -22,10 +22,18 @@
     "image-size": "^0.6.2",
     "knex": "^0.14.2",
     "mysql": "^2.15.0",
-    "nodemon": "^1.14.1",
-    "objection": "^0.9.2",
+    "nodemon": "^1.14.7",
+    "objection": "^0.9.4",
     "rimraf": "^2.6.2",
-    "telegraf": "^3.17.2",
+    "telegraf": "^3.17.3",
     "webshot": "^0.18.0"
+  },
+  "devDependencies": {
+    "eslint": "^4.14.0",
+    "eslint-config-standard": "^11.0.0-beta.0",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-standard": "^3.0.1"
   }
 }

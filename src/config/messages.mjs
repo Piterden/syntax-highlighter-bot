@@ -28,8 +28,7 @@ export const langs = fs
   .filter((file) => file.endsWith('.js'))
   .map((file) => file.replace('.js', ''))
 
-export default {
-
+export const messages = {
   langsList: () => `*Supported languages list:*
 
 \`\`\`
@@ -40,17 +39,13 @@ ${langs.map(makeCols).join('')}\`\`\`
 code
 \\\`\\\`\\\``,
 
-
   themeChanged: (user) => `Congratulations *${user.firstName || user.first_name}*, your default theme was changed to *${user.theme}*!`,
-
 
   themeChoose: (theme) => `Your selected theme is *${theme}*.
 
 Select the new one theme for all your codes, even those that you send in groups:`,
 
-
   themeGroup: `To configure the theme of your code send me the command in private: @${_env.BOT_USER.replace(/_/g, '\\_')}`,
-
 
   welcomeGroup: () => `Hello!
 
@@ -59,7 +54,6 @@ If you send pieces of programming code with \`fixed-width code\` format in this 
 You can also send me in private any code without the need of the \`fixed-width code\` format, try it: @${_env.BOT_USER.replace(/_/g, '\\_')}.
 
 _If I am not working, try it privately, I don't like sending error messages in groups._`,
-
 
   welcomeUser: (user) => `Welcome, ${user.firstName || user.first_name} ${user.lastName || user.last_name}!
 
@@ -74,7 +68,6 @@ You can send to me chunks of a programming code, then you will receive it highli
 - *Themes:* To each his own. Select your preferred theme, the one you select will be used when you generate codes here, in groups and in inline mode. Start now: /theme
 
 - *Inline mode:* just type my username in any chat to check your recent codes or keep typing code to create a new one quickly (similar to the use of @gif etc.)`,
-
 
   getHtml: (code, theme, lang) => `<html lang="en">
 <head>
@@ -96,7 +89,6 @@ You can send to me chunks of a programming code, then you will receive it highli
   </pre>
 </body>
 </html>`,
-
 
   demoCode: (theme) => `function syntaxHighlightBot(block, cls) {
   /**

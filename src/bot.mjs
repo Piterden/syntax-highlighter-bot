@@ -1,117 +1,33 @@
-import fs from 'fs'
-import path from 'path'
 import Knex from 'knex'
 import https from 'https'
-import crypto from 'crypto'
-import dotenv from 'dotenv'
 import express from 'express'
 import webshot from 'webshot'
-import sizeOf from 'image-size'
 import Telegraf from 'telegraf'
 import Markup from 'telegraf/markup'
 
-import dbConfig from '../knexfile'
-import messages from './config/messages'
-import { themes, langs } from './config/messages'
+import dbConfig from './config/knexfile'
+import { messages, themes, langs } from './config/messages'
+import { tlsOptions, webshotOptions, url, _env } from './config/config'
+import {
+  getPath,
+  getTempPath,
+  getThemeSlug,
+  getThemeName,
+  getImageFileName,
+  isExisted,
+  getFileURL,
+  getPhotoData,
+  isPrivateChat,
+  chatUser,
+  themesKeyboard,
+  replyWithPhoto,
+  makeUserFolder,
+  onError,
+} from './support/utils'
 
 import UserModel from './model/User/UserModel'
 import ChatModel from './model/Chat/ChatModel'
 import ChunkModel from './model/Chunk/ChunkModel'
-
-const _env = dotenv.config().parsed
-
-const tlsOptions = {
-  key: fs.readFileSync(path.resolve(_env.WEBHOOK_KEY)),
-  cert: fs.readFileSync(path.resolve(_env.WEBHOOK_CERT)),
-}
-
-const webshotOptions = {
-  siteType: 'html',
-  captureSelector: '#code',
-  quality: 100,
-  shotSize: { width: 'all', height: 'all' },
-}
-
-const url = `https://${_env.WEBHOOK_DOMAIN}:${_env.WEBHOOK_PORT}/`
-
-const md5 = (string) =>
-  crypto.createHash('md5').update(string).digest('hex')
-
-const getPath = (file) =>
-  path.resolve(`images/${file}`)
-
-const getTempPath = (ctx, file) =>
-  path.resolve(`images/${ctx.state.user.id}/${file}`)
-
-const getThemeSlug = (name) => name
-  .split(' ')
-  .map((word) => word.toLowerCase())
-  .join('-')
-
-const getThemeName = (slug) => slug
-  .split('-')
-  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-  .join(' ')
-
-const getImageFileName = (body, theme) =>
-  `${md5(body)}_${getThemeSlug(theme)}.jpg`
-
-const isExisted = (file) => fs.existsSync(file)
-
-const filenameFix = (file) => {
-  const match = file.match(/(images\/.+)$/)
-  return match && match[1] || file
-}
-
-const getFileURL = (file) => `${url}${filenameFix(file)}`
-
-const getImageWidth = (file) => sizeOf(getPath(file)).width
-
-const getImageHeight = (file) => sizeOf(getPath(file)).height
-
-const getPhotoData = (file, idx = null) => ({
-  'type': 'photo',
-  'photo_url': getFileURL(file),
-  'thumb_url': getFileURL(file),
-  'photo_width': getImageWidth(file),
-  'photo_height': getImageHeight(file),
-  'id': file + (idx || ''),
-})
-
-const isPrivateChat = (ctx) => ctx.chat.type === 'private'
-
-const chatUser = (ctx) => {
-  if (!ctx.from) return false
-  const user = { ...{}, ...ctx.from }
-  delete user.is_bot
-  return user
-}
-
-const themesKeyboard = (themes, cache = '') => themes
-  .map((theme, idx) => {
-    if ((idx + 1) % 2) {
-      cache = `🎨 ${getThemeName(theme)}`
-      return idx - 1 < themes.length ? false : cache
-    }
-    return [cache, `🎨 ${getThemeName(theme)}`]
-  })
-  .filter(Boolean)
-
-const replyWithPhoto = (ctx, path) => {
-  ctx.replyWithChatAction('upload_photo')
-  return ctx.replyWithPhoto(
-    { url: getFileURL(path) },
-    Markup.removeKeyboard().extra()
-  )
-}
-
-const makeUserFolder = (user) => {
-  const filepath = path.resolve(`images/${user.id}`)
-  if (isExisted(filepath)) return
-  fs.mkdirSync(filepath)
-}
-
-const onError = (err) => console.log(err)
 
 const knex = Knex(dbConfig.development)
 ChatModel.knex(knex)
@@ -271,7 +187,7 @@ bot.entity(({ type }) => type === 'pre', (ctx) => {
 
   let code = ctx.message.text.slice(entity.offset, entity.offset + entity.length)
   const match = code.match(/^(\w+)\n/)
-  const theme = ctx.state.user && ctx.state.user.theme || 'github'
+  const theme = ctx.state.user ? ctx.state.user.theme : 'github'
   const lang = match && match[1]
 
   if (match && langs.includes(lang)) {
@@ -300,7 +216,7 @@ bot.on('inline_query', (ctx) => {
   let code = ctx.update.inline_query.query
   const match = code.match(/^(\w+)\n/)
   const lang = match && match[1]
-  const theme = ctx.state.user && ctx.state.user.theme || 'github'
+  const theme = ctx.state.user ? ctx.state.user.theme : 'github'
 
   if (match && langs.includes(lang)) {
     code = code.replace(new RegExp(match && match[0], 'i'), '')
@@ -358,4 +274,8 @@ bot.on(['left_chat_member'], (ctx) => {
     .patchAndFetchById(ctx.chat.id, { active: false })
     .then()
     .catch(onError)
+})
+
+bot.hears(/.*/, ({ reply, match }) => {
+  reply('Hey there!').then(() => reply(match[0]))
 })
