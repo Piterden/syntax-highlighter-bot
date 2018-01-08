@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import Knex from 'knex'
 import https from 'https'
 import express from 'express'
@@ -21,15 +22,16 @@ import {
   chatUser,
   themesKeyboard,
   replyWithPhoto,
-  makeUserFolder,
   onError,
 } from './support/utils'
 
-import UserModel from './model/User/UserModel'
-import ChatModel from './model/Chat/ChatModel'
-import ChunkModel from './model/Chunk/ChunkModel'
+import UserModel from './model/User/user-model'
+import ChatModel from './model/Chat/chat-model'
+import ChunkModel from './model/Chunk/chunk-model'
 
-const knex = Knex(dbConfig.development)
+
+const knex = Knex(dbConfig[_env.NODE_ENV])
+
 ChatModel.knex(knex)
 UserModel.knex(knex)
 ChunkModel.knex(knex)
@@ -47,25 +49,25 @@ const storeChunk = (ctx, filename, source, lang) => {
     .catch(onError)
 }
 
-const storeUser = (ctx, next) => {
-  UserModel.query()
-    .findById(chatUser(ctx).id)
-    .then(user => {
-      if (user) {
-        ctx.state.user = user
-        return next(ctx)
-      }
-      UserModel.query()
-        .insert({ ...chatUser(ctx), theme: 'github' })
-        .then((user) => {
-          ctx.state.user = user
-          makeUserFolder(user)
-          return next(ctx)
-        })
-        .catch(onError)
-    })
-    .catch(onError)
-}
+// const storeUser = (ctx, next) => {
+//   UserModel.query()
+//     .findById(chatUser(ctx).id)
+//     .then((user) => {
+//       if (user) {
+//         ctx.state.user = user
+//         return next(ctx)
+//       }
+//       return UserModel.query()
+//         .insert({ ...chatUser(ctx), theme: 'github' })
+//         .then((data) => {
+//           ctx.state.user = data
+//           makeUserFolder(data)
+//           return next(ctx)
+//         })
+//         .catch(onError)
+//     })
+//     .catch(onError)
+// }
 
 const server = express()
 const bot = new Telegraf(_env.BOT_TOKEN, { telegram: { webhookReply: true } })
@@ -92,6 +94,7 @@ https
  */
 bot.use((ctx, next) => {
   const start = new Date()
+
   return next(ctx).then(() => {
     console.log(ctx.message)
     console.log()
@@ -105,10 +108,9 @@ bot.use((ctx, next) => {
 /**
  * User middleware
  */
-bot.use((ctx, next) => {
-  if (ctx.state.user) return next(ctx)
-  storeUser(ctx, next)
-})
+bot.use((ctx, next) => ctx.state.user
+  ? next(ctx)
+  : UserModel.store(ctx, next))
 
 /**
  * Start bot command
@@ -123,8 +125,7 @@ bot.start((ctx) => isPrivateChat(ctx) && ctx.replyWithMarkdown(
  */
 bot.command('langs', (ctx) => isPrivateChat(ctx)
   ? ctx.replyWithMarkdown(messages.langsList())
-  : ctx.reply(messages.themeGroup)
-)
+  : ctx.reply(messages.themeGroup))
 
 /**
  * Show themes list
@@ -134,8 +135,7 @@ bot.command('theme', (ctx) => isPrivateChat(ctx)
     messages.themeChoose(ctx.state.user.theme),
     Markup.keyboard(themesKeyboard(themes)).oneTime().resize().extra()
   )
-  : ctx.reply(messages.themeGroup)
-)
+  : ctx.reply(messages.themeGroup))
 
 /**
  * Theme choose command
@@ -167,17 +167,7 @@ bot.hears(/^🎨 (.+)/, (ctx) => {
 /**
  * Save theme
  */
-bot.action(/^\/apply\/(.+)$/, (ctx) => UserModel.query()
-  .patchAndFetchById(chatUser(ctx).id, { theme: ctx.match[1] })
-  .then((user) => {
-    ctx.answerCbQuery()
-    ctx.replyWithMarkdown(
-      messages.themeChanged(user),
-      Markup.removeKeyboard().extra()
-    )
-  })
-  .catch(onError)
-)
+bot.action(/^\/apply\/(.+)$/, (ctx) => UserModel.applyTheme(ctx))
 
 /**
  * Catch code message
@@ -203,10 +193,11 @@ bot.entity(({ type }) => type === 'pre', (ctx) => {
     return replyWithPhoto(ctx, imagePath)
   }
 
-  webshot(html, imagePath, webshotOptions, (err) => {
-    if (err) return console.log(err)
-    return replyWithPhoto(ctx, imagePath)
-  })
+  webshot(html, imagePath, webshotOptions, (err) => err
+    ? console.log(err)
+    : replyWithPhoto(ctx, imagePath))
+
+  return true
 })
 
 /**
@@ -229,10 +220,11 @@ bot.on('inline_query', (ctx) => {
     return ctx.answerInlineQuery([getPhotoData(imagePath)])
   }
 
-  webshot(html, imagePath, webshotOptions, (err) => {
-    if (err) return console.log(err)
-    return ctx.answerInlineQuery([getPhotoData(imagePath)])
-  })
+  webshot(html, imagePath, webshotOptions, (err) => err
+    ? console.log(err)
+    : ctx.answerInlineQuery([getPhotoData(imagePath)]))
+
+  return true
 })
 // ctx.telegram.answerInlineQuery(ctx.inlineQuery.id, result)
 
@@ -246,7 +238,7 @@ bot.on(['new_chat_members'], (ctx) => {
 
   ChatModel.query()
     .findById(ctx.chat.id)
-    .then(chat => chat
+    .then((chat) => chat
       ? ChatModel.query()
         .patchAndFetchById(chat.id, { active: true })
         .then(onSuccess)
@@ -259,8 +251,7 @@ bot.on(['new_chat_members'], (ctx) => {
           active: true,
         })
         .then(onSuccess)
-        .catch(onError)
-    )
+        .catch(onError))
     .catch(onError)
 })
 
