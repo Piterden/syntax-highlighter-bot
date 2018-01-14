@@ -60,7 +60,9 @@ _If I am not working, try it privately, I don't like sending error messages in g
 
   welcomeUser: (user) => `Welcome, ${user.firstName || user.first_name || ''}!
 
-You can send to me chunks of a programming code, then you will receive it highlighted, as an image, for easy reading.
+*This bot is WIP now!!!* The sources you could find [there](https://github.com/Piterden/syntax-highlighter-bot)
+
+You can send to me chunks of a programming code formatted with three backticks, then you will receive an image with highlighted code.
 
 *Features:*
 
@@ -70,7 +72,9 @@ You can send to me chunks of a programming code, then you will receive it highli
 
 - *Themes:* To each his own. Select your preferred theme, the one you select will be used when you generate codes here, in groups and in inline mode. Start now: /theme
 
-- *Inline mode:* just type my username in any chat to check your recent codes or keep typing code to create a new one quickly (similar to the use of @gif etc.)`,
+- *Inline mode:* just type my username in any chat to check your recent codes or keep typing code to create a new one quickly (similar to the use of @gif etc.)
+
+_Any questions or bugs you can write to _@piterden_ (ru,en,code) or _@CristianOspina_ (es,en,idea)._`,
 
   getHtml: (code, theme, lang) => `<html lang="en">
 <head>
