@@ -4,6 +4,7 @@ import dotenv from 'dotenv'
 import highlight from 'highlight.js'
 
 
+const cols = 2
 const maxWidth = 16
 const ENV = dotenv.config().parsed
 
@@ -16,7 +17,7 @@ const htmlhighlight = (body, lang) => lang
   ? highlight.highlight(lang, body).value
   : highlight.highlightAuto(body).value
 
-const makeCols = (lang, idx) => (idx + 1) % 2
+const makeCols = (lang, idx) => (idx + 1) % cols
   ? lang.replace(/,/g, '') + (new Array(maxWidth - lang.length)).fill(' ').join('')
   : `${lang}\n`
 
@@ -41,7 +42,7 @@ ${langs.map(makeCols).join('')}\`\`\`
 code
 \\\`\\\`\\\``,
 
-  themeChanged: (user) => `Congratulations *${user.firstName || user.first_name}*, your default theme was changed to *${user.theme}*!`,
+  themeChanged: (user) => `Congratulations *${user.firstName || user.first_name || ''}*, your default theme was changed to *${user.theme}*!`,
 
   themeChoose: (theme) => `Your selected theme is *${theme}*.
 
@@ -57,7 +58,7 @@ You can also send me in private any code without the need of the \`fixed-width c
 
 _If I am not working, try it privately, I don't like sending error messages in groups._`,
 
-  welcomeUser: (user) => `Welcome, ${user.firstName || user.first_name} ${user.lastName || user.last_name}!
+  welcomeUser: (user) => `Welcome, ${user.firstName || user.first_name || ''} ${user.lastName || user.last_name || ''}!
 
 You can send to me chunks of a programming code, then you will receive it highlighted, as an image, for easy reading.
 
@@ -110,5 +111,5 @@ You can send to me chunks of a programming code, then you will receive it highli
     }
   }
 }
-export  syntaxHighlightBot;`,
+export syntaxHighlightBot;`,
 }

@@ -8,29 +8,18 @@ import Markup from 'telegraf/markup'
 
 import dbConfig from './config/knexfile'
 import { messages, themes, langs } from './config/messages'
-import { tlsOptions, webshotOptions, url, _env } from './config/config'
-import {
-  getPath,
-  getTempPath,
-  getThemeSlug,
-  getThemeName,
-  getImageFileName,
-  isExisted,
-  getFileURL,
-  getPhotoData,
-  isPrivateChat,
-  chatUser,
-  themesKeyboard,
-  replyWithPhoto,
-  onError,
-} from './support/utils'
+import { tlsOptions, webshotOptions, url, ENV } from './config/config'
+
+import { getPath, getTempPath, getThemeSlug, getThemeName, getImageFileName,
+  isExisted, getFileURL, getPhotoData, isPrivateChat, chatUser, themesKeyboard,
+  replyWithPhoto, onError } from './support/utils'
 
 import UserModel from './model/User/user-model'
 import ChatModel from './model/Chat/chat-model'
 import ChunkModel from './model/Chunk/chunk-model'
 
 
-const knex = Knex(dbConfig[_env.NODE_ENV])
+const knex = Knex(dbConfig[ENV.NODE_ENV])
 
 ChatModel.knex(knex)
 UserModel.knex(knex)
@@ -70,24 +59,24 @@ const storeChunk = (ctx, filename, source, lang) => {
 // }
 
 const server = express()
-const bot = new Telegraf(_env.BOT_TOKEN, { telegram: { webhookReply: true } })
+const bot = new Telegraf(ENV.BOT_TOKEN, { telegram: { webhookReply: true } })
 
-server.use(bot.webhookCallback(`/${_env.WEBHOOK_PATH}`))
+server.use(bot.webhookCallback(`/${ENV.WEBHOOK_PATH}`))
 
 server.use('/images', express.static('images'))
 
 server.post(
-  `/${_env.WEBHOOK_PATH}`,
+  `/${ENV.WEBHOOK_PATH}`,
   (req, res) => bot.handleUpdate(req.body, res)
 )
 
 // Set telegram webhook
-bot.telegram.setWebhook(`${url}${_env.WEBHOOK_PATH}`, tlsOptions.cert)
+bot.telegram.setWebhook(`${url}${ENV.WEBHOOK_PATH}`, tlsOptions.cert)
 
 // Start Express Server
 https
   .createServer(tlsOptions, server)
-  .listen(_env.WEBHOOK_PORT, _env.WEBHOOK_DOMAIN)
+  .listen(ENV.WEBHOOK_PORT, ENV.WEBHOOK_DOMAIN)
 
 /**
  * Log middleware
@@ -232,7 +221,7 @@ bot.on('inline_query', (ctx) => {
  * Bot was added to a group
  */
 bot.on(['new_chat_members'], (ctx) => {
-  if (ctx.message.new_chat_member.username !== _env.BOT_USER) return
+  if (ctx.message.new_chat_member.username !== ENV.BOT_USER) return
 
   const onSuccess = () => ctx.replyWithMarkdown(messages.welcomeGroup())
 
@@ -259,7 +248,7 @@ bot.on(['new_chat_members'], (ctx) => {
  * Bot was removed from group
  */
 bot.on(['left_chat_member'], (ctx) => {
-  if (ctx.message.left_chat_member.username !== _env.BOT_USER) return
+  if (ctx.message.left_chat_member.username !== ENV.BOT_USER) return
 
   ChatModel.query()
     .patchAndFetchById(ctx.chat.id, { active: false })

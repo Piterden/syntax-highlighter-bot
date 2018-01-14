@@ -6,6 +6,8 @@ import Markup from 'telegraf/markup'
 import { url } from '../config/config'
 
 
+const cols = 2
+
 export const md5 = (string) => crypto
   .createHash('md5').update(string).digest('hex')
 
@@ -60,7 +62,7 @@ export const chatUser = (ctx) => {
 
 export const themesKeyboard = (themes, cache = '') => themes
   .map((theme, idx) => {
-    if ((idx + 1) % 2) {
+    if ((idx + 1) % cols) {
       // eslint-disable-next-line no-param-reassign
       cache = `🎨 ${getThemeName(theme)}`
       return idx - 1 < themes.length ? false : cache
@@ -86,4 +88,5 @@ export const makeUserFolder = (user) => {
   fs.mkdirSync(filepath)
 }
 
+// eslint-disable-next-line no-console
 export const onError = (err) => console.log(err)
