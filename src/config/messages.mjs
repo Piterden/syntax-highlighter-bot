@@ -58,7 +58,7 @@ You can also send me in private any code without the need of the \`fixed-width c
 
 _If I am not working, try it privately, I don't like sending error messages in groups._`,
 
-  welcomeUser: (user) => `Welcome, ${user.firstName || user.first_name || ''} ${user.lastName || user.last_name || ''}!
+  welcomeUser: (user) => `Welcome, ${user.firstName || user.first_name || ''}!
 
 You can send to me chunks of a programming code, then you will receive it highlighted, as an image, for easy reading.
 
