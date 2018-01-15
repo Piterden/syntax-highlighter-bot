@@ -1,16 +1,42 @@
-# Syntax Highlight Bot
+# Syntax Highlighter Bot
 
 The bot for creating an image with highlighted code from a message.
 
-### Prerequisites
+## Overview
 
-Bot written on the [Telegraf.js](https://github.com/telegraf/telegraf) bot framework, so all you need to run it is Node.js and npm.
+This bot was written on top of the [Telegraf.js](https://github.com/telegraf/telegraf) bot framework, so all you need to have is the Node.js > v6.
 
-### Installing
+## Usage
 
-First of all clone this repository and install dependencies.
+[Demo](https://t.me/cris_highlight_bot) (WIP version).
 
-Run in bash:
+The bot listens for the first entity type of `pre` in each text message. It means, it will render only one first code piece, wrapped in triple backticks (multiline code). Also you could force the language, writing its name on the first line, right after backticks. Just like on the GitHub.
+
+Look at the example of a code should be handled by the bot:
+
+```markdown
+```javascript
+/**
+ * Show themes list
+ */
+bot.command('theme', (ctx) => isPrivateChat(ctx)
+  ? ctx.replyWithMarkdown(
+    messages.themeChoose(ctx.state.user.theme),
+    Markup.keyboard(themesKeyboard(themes)).oneTime().resize().extra()
+  )
+  : ctx.reply(messages.themeGroup)
+)```
+```
+
+### Commands
+
+- `/start` - Initial launch of the bot.
+- `/theme` - Shows the list of included themes and allows you to select a theme which you like more.
+- `/langs` - Shows the list of supported languages.
+
+## Installing
+
+First of all clone this repository and install dependencies. Run in the terminal:
 
 ```bash
 $ git clone git@github.com:Piterden/syntax-highlighter-bot.git
@@ -38,8 +64,8 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 
 ## Authors
 
-* **Cristian Ospina** - *Initial work* - [CristianOspina](https://github.com/CristianOspina)
-* **Denis Efremov** - *Rewrite to Node.js* - [Piterden](https://github.com/Piterden)
+* **Cristian Ospina** - *Initial version of the bot* - [CristianOspina](https://github.com/CristianOspina)
+* **Denis Efremov** - *Rewrite to the Node.js* - [Piterden](https://github.com/Piterden)
 
 ## License
 
