@@ -12,7 +12,7 @@ import { tlsOptions, webshotOptions, url, ENV } from './config/config'
 
 import { getPath, getTempPath, getThemeSlug, getThemeName, getImageFileName,
   isExisted, getFileURL, getPhotoData, isPrivateChat, chatUser, themesKeyboard,
-  replyWithPhoto, onError } from './support/utils'
+  replyWithPhoto, onError } from './config/methods'
 
 import UserModel from './model/User/user-model'
 import ChatModel from './model/Chat/chat-model'
@@ -254,8 +254,4 @@ bot.on(['left_chat_member'], (ctx) => {
     .patchAndFetchById(ctx.chat.id, { active: false })
     .then()
     .catch(onError)
-})
-
-bot.hears(/.*/, ({ reply, match }) => {
-  reply('Hey there!').then(() => reply(match[0]))
 })
