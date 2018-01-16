@@ -38,26 +38,6 @@ const storeChunk = (ctx, filename, source, lang) => {
     .catch(onError)
 }
 
-// const storeUser = (ctx, next) => {
-//   UserModel.query()
-//     .findById(chatUser(ctx).id)
-//     .then((user) => {
-//       if (user) {
-//         ctx.state.user = user
-//         return next(ctx)
-//       }
-//       return UserModel.query()
-//         .insert({ ...chatUser(ctx), theme: 'github' })
-//         .then((data) => {
-//           ctx.state.user = data
-//           makeUserFolder(data)
-//           return next(ctx)
-//         })
-//         .catch(onError)
-//     })
-//     .catch(onError)
-// }
-
 const server = express()
 const bot = new Telegraf(ENV.BOT_TOKEN, { telegram: { webhookReply: true } })
 

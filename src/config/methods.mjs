@@ -1,24 +1,28 @@
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
+import dotenv from 'dotenv'
 import sizeOf from 'image-size'
 import Markup from 'telegraf/markup'
 import { url } from './config'
 
 
+const ENV = dotenv.config().parsed
 const cols = 2
 
 export const md5 = (string) => crypto
-  .createHash('md5').update(string).digest('hex')
+  .createHash('md5')
+  .update(string)
+  .digest('hex')
 
-export const getPath = (file) => path
-  .resolve(`images/${file}`)
+export const getPath = (file) => path.resolve(`${ENV.IMAGES_DIR}/${file}`)
 
-export const getTempPath = (ctx, file) => path
-  .resolve(`images/${ctx.state.user.id}/${file}`)
+export const getTempPath = (ctx, file) => path.resolve(`${ENV.IMAGES_DIR}/${ctx.state.user.id}/${file}`)
 
 export const getThemeSlug = (name) => name
-  .split(' ').map((word) => word.toLowerCase()).join('-')
+  .split(' ')
+  .map((word) => word.toLowerCase())
+  .join('-')
 
 export const getThemeName = (slug) => slug
   .split('-')
@@ -30,7 +34,7 @@ export const getImageFileName = (body, theme) => `${md5(body)}_${getThemeSlug(th
 export const isExisted = (file) => fs.existsSync(file)
 
 export const filenameFix = (file) => {
-  const match = file.match(/(images\/.+)$/)
+  const match = file.match(new RegExp(`(${ENV.IMAGES_DIR}/.+)$`))
 
   return match ? match[1] : file
 }
@@ -73,10 +77,9 @@ export const themesKeyboard = (themes, cache = '') => themes
 
 export const replyWithPhoto = (ctx, photoPath) => {
   ctx.replyWithChatAction('upload_photo')
-  return ctx.replyWithPhoto(
-    { url: getFileURL(photoPath) },
-    Markup.removeKeyboard().extra()
-  )
+  return ctx.replyWithPhoto({
+    url: getFileURL(photoPath),
+  }, Markup.removeKeyboard().extra())
 }
 
 export const makeUserFolder = (user) => {

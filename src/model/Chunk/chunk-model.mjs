@@ -1,6 +1,6 @@
 import Objection from 'objection'
-import UserModel from '../User/UserModel'
-import ChatModel from '../Chat/ChatModel'
+import UserModel from '../User/user-model'
+import ChatModel from '../Chat/chat-model'
 
 
 const { Model, snakeCaseMappers } = Objection
