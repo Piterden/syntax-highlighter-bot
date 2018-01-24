@@ -6,7 +6,7 @@ import webshot from 'webshot'
 import Telegraf from 'telegraf'
 import Markup from 'telegraf/markup'
 
-import dbConfig from './config/knexfile'
+import dbConfig from '../knexfile'
 import { messages, themes, langs } from './config/messages'
 import { tlsOptions, webshotOptions, url, ENV } from './config/config'
 
