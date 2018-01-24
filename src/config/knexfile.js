@@ -1,53 +1,49 @@
-// Update with your config settings.
-
 module.exports = {
-
-    development: {
-      client: 'mysql',
-      connection: {
-        database: 'syntax',
-        user:     'syntax',
-        password: 'syntax',
-      },
-      pool: {
-        min: 2,
-        max: 10,
-      },
-      migrations: {
-        tableName: 'migrations',
-      },
+  development: {
+    client: 'mysql',
+    connection: {
+      database: 'syntax',
+      user: 'syntax',
+      password: 'syntax',
     },
-
-    staging: {
-      client: 'mysql',
-      connection: {
-        database: 'syntax',
-        user:     'syntax',
-        password: 'syntax',
-      },
-      pool: {
-        min: 2,
-        max: 10,
-      },
-      migrations: {
-        tableName: 'migrations',
-      },
+    pool: {
+      min: 2,
+      max: 10,
     },
-
-    production: {
-      client: 'mysql',
-      connection: {
-        database: 'syntax',
-        user:     'syntax',
-        password: 'syntax',
-      },
-      pool: {
-        min: 2,
-        max: 10,
-      },
-      migrations: {
-        tableName: 'migrations',
-      },
+    migrations: {
+      tableName: 'migrations',
     },
+  },
 
-  }
+  staging: {
+    client: 'mysql',
+    connection: {
+      database: 'syntax',
+      user: 'syntax',
+      password: 'syntax',
+    },
+    pool: {
+      min: 2,
+      max: 10,
+    },
+    migrations: {
+      tableName: 'migrations',
+    },
+  },
+
+  production: {
+    client: 'mysql',
+    connection: {
+      database: 'syntax',
+      user: 'syntax',
+      password: 'syntax',
+    },
+    pool: {
+      min: 2,
+      max: 10,
+    },
+    migrations: {
+      tableName: 'migrations',
+    },
+  },
+}

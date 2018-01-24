@@ -1,13 +1,13 @@
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
-import dotenv from 'dotenv'
 import sizeOf from 'image-size'
 import Markup from 'telegraf/markup'
-import { url } from './config'
+
+import { url, ENV } from './config'
 
 
-const ENV = dotenv.config().parsed
+const { IMAGES_DIR } = ENV
 const cols = 2
 
 export const md5 = (string) => crypto
@@ -15,9 +15,9 @@ export const md5 = (string) => crypto
   .update(string)
   .digest('hex')
 
-export const getPath = (file) => path.resolve(`${ENV.IMAGES_DIR}/${file}`)
+export const getPath = (file) => path.resolve(`${IMAGES_DIR}/${file}`)
 
-export const getTempPath = (ctx, file) => path.resolve(`${ENV.IMAGES_DIR}/${ctx.state.user.id}/${file}`)
+export const getTempPath = (ctx, file) => path.resolve(`${IMAGES_DIR}/${ctx.state && ctx.state.user && ctx.state.user.id}/${file}`)
 
 export const getThemeSlug = (name) => name
   .split(' ')
@@ -34,7 +34,7 @@ export const getImageFileName = (body, theme) => `${md5(body)}_${getThemeSlug(th
 export const isExisted = (file) => fs.existsSync(file)
 
 export const filenameFix = (file) => {
-  const match = file.match(new RegExp(`(${ENV.IMAGES_DIR}/.+)$`))
+  const match = file.match(new RegExp(`(${IMAGES_DIR}/.+)$`))
 
   return match ? match[1] : file
 }
@@ -54,11 +54,11 @@ export const getPhotoData = (file, idx = null) => ({
   id: file + (idx || ''),
 })
 
-export const isPrivateChat = (ctx) => ctx.chat.type === 'private'
+export const isPrivateChat = ({ chat }) => chat.type === 'private'
 
-export const chatUser = (ctx) => {
-  if (!ctx.from) return false
-  const user = { ...{}, ...ctx.from }
+export const chatUser = ({ from }) => {
+  if (!from) return false
+  const user = { ...{}, ...from }
 
   delete user.is_bot
   return user
@@ -75,20 +75,22 @@ export const themesKeyboard = (themes, cache = '') => themes
   })
   .filter(Boolean)
 
-export const replyWithPhoto = (ctx, photoPath) => {
+export const replyWithPhoto = (ctx, image) => {
   ctx.replyWithChatAction('upload_photo')
-  return ctx.replyWithPhoto({
-    url: getFileURL(photoPath),
-  }, Markup.removeKeyboard().extra())
+  return ctx.replyWithPhoto(
+    {
+      url: getFileURL(image),
+    },
+    Markup.removeKeyboard().extra()
+  )
 }
 
 export const makeUserFolder = (user) => {
   const filepath = path.resolve(`images/${user.id}`)
 
-  if (isExisted(filepath)) {
-    return
+  if (!isExisted(filepath)) {
+    fs.mkdirSync(filepath)
   }
-  fs.mkdirSync(filepath)
 }
 
 // eslint-disable-next-line no-console

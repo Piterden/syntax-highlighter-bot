@@ -1,12 +1,13 @@
 import fs from 'fs'
 import path from 'path'
-import dotenv from 'dotenv'
 import highlight from 'highlight.js'
 
+import { ENV } from './config'
 
+
+const { BOT_USER } = ENV
 const cols = 2
 const maxWidth = 16
-const ENV = dotenv.config().parsed
 
 const getThemeCssFilePath = (theme) => path
   .resolve(`node_modules/highlight.js/styles/${theme}.css`)
@@ -48,13 +49,13 @@ code
 
 Select the new one theme for all your codes, even those that you send in groups:`,
 
-  themeGroup: `To configure the theme of your code send me the command in private: @${ENV.BOT_USER.replace(/_/g, '\\_')}`,
+  themeGroup: `To configure the theme of your code send me the command in private: @${BOT_USER.replace(/_/g, '\\_')}`,
 
   welcomeGroup: () => `Hello!
 
 If you send pieces of programming code with \`fixed-width code\` format in this group, I'll send a picture with syntax highlighting for easy reading.
 
-You can also send me in private any code without the need of the \`fixed-width code\` format, try it: @${ENV.BOT_USER.replace(/_/g, '\\_')}.
+You can also send me in private any code without the need of the \`fixed-width code\` format, try it: @${BOT_USER.replace(/_/g, '\\_')}.
 
 _If I am not working, try it privately, I don't like sending error messages in groups._`,
 
