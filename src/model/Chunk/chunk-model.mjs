@@ -94,7 +94,7 @@ class ChunkModel extends Model {
    * @param {string} source
    * @param {string} lang
    */
-  static store(ctx, filename, source, lang) {
+  static store(ctx, { filename, lang, source }) {
     const userId = ctx.state.user.id
     const chatId = ctx.chat.id
 

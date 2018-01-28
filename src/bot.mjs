@@ -25,19 +25,6 @@ ChatModel.knex(knex)
 UserModel.knex(knex)
 ChunkModel.knex(knex)
 
-const storeChunk = (ctx, filename, source, lang) => {
-  ChunkModel.query()
-    .insert({
-      filename,
-      userId: ctx.state.user.id,
-      chatId: ctx.chat.id,
-      lang,
-      source,
-    })
-    .then()
-    .catch(onError)
-}
-
 const server = express()
 const bot = new Telegraf(ENV.BOT_TOKEN, { telegram: { webhookReply: true } })
 
@@ -156,7 +143,11 @@ bot.entity(({ type }) => type === 'pre', (ctx) => {
   const html = messages.getHtml(code, theme, lang)
   const imagePath = getPath(getImageFileName(html, theme))
 
-  storeChunk(ctx, getImageFileName(html, theme), code, lang || 'auto')
+  ChunkModel.store(ctx, {
+    filename: getImageFileName(html, theme),
+    lang: lang || 'auto',
+    source: code,
+  })
 
   if (isExisted(imagePath)) {
     return replyWithPhoto(ctx, imagePath)
