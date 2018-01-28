@@ -25,12 +25,12 @@
     "nodemon": "^1.14.11",
     "objection": "^0.9.4",
     "rimraf": "^2.6.2",
-    "telegraf": "^3.17.3",
+    "telegraf": "^3.17.5",
     "webshot": "^0.18.0"
   },
   "devDependencies": {
     "babel-eslint": "^8.2.1",
-    "eslint": "^4.14.0",
+    "eslint": "^4.16.0",
     "eslint-config-atomix-base": "^5.3.2",
     "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-node": "^5.2.1",
