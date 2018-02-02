@@ -30,6 +30,26 @@ class ChatModel extends Model {
     }
   }
 
+  create(ctx, config, cb, err) {
+    this.query()
+      .findById(ctx.chat.id)
+      .then((chat) => chat
+        ? this.query()
+          .patchAndFetchById(chat.id, { active: true })
+          .then(cb)
+          .catch(err)
+        : this.query()
+          .insert({
+            id: ctx.chat.id,
+            title: ctx.chat.title,
+            type: ctx.chat.type,
+            active: true,
+          })
+          .then(cb)
+          .catch(err))
+      .catch(err)
+  }
+
   $beforeInsert() {
     this.createdAt = new Date()
   }
