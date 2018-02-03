@@ -93,7 +93,7 @@ bot.command('theme', (ctx) => isPrivateChat(ctx)
 /**
  * Theme choose command
  */
-bot.hears(/^?? (.+)/, (ctx) => {
+bot.hears(/^🎨 (.+)/, (ctx) => {
   const theme = getThemeSlug(ctx.match[1])
 
   if (!themes.includes(theme)) return
