@@ -10,9 +10,9 @@ import dbConfig from '../knexfile'
 import { messages, themes, langs } from './config/messages'
 import { tlsOptions, webshotOptions, url, ENV } from './config/config'
 
-import { getPath, /* getTempPath,  */getThemeSlug, getThemeName, getImageFileName,
-  isExisted, getFileURL, /* getPhotoData,  */isPrivateChat, chatUser, themesKeyboard,
-  replyWithPhoto, onError } from './config/methods'
+import { getPath, getTempPath, getThemeSlug, getThemeName, getImageFileName,
+  isExisted, getFileURL, getPhotoData, isPrivateChat, chatUser, themesKeyboard,
+  replyWithPhoto, onError, clearFolder } from './config/methods'
 
 import UserModel from './model/User/user-model'
 import ChatModel from './model/Chat/chat-model'
@@ -152,31 +152,40 @@ bot.entity(({ type }) => type === 'pre', (ctx) => {
 /**
  * Inline query
  */
-// bot.on('inline_query', (ctx) => {
-//   let code = ctx.update.inline_query.query
-//   const match = code.match(/^(\w+)\n/)
-//   const lang = match && match[1]
-//   const theme = ctx.state && ctx.state.user ? ctx.state.user.theme : 'github'
+bot.on('inline_query', (ctx) => {
+  let code = ctx.update.inline_query.query
+  const match = code.match(/^(\w+)\n/)
+  const lang = match && match[1]
+  const theme = ctx.state && ctx.state.user ? ctx.state.user.theme : 'github'
 
-//   if (match && langs.includes(lang)) {
-//     code = code.replace(new RegExp(match[0], 'i'), '')
-//   }
+  clearFolder(ctx.state && ctx.state.user)
 
-//   const html = messages.getHtml(code, theme, lang)
-//   const imagePath = getTempPath(getImageFileName(html, theme))
+  if (match && langs.includes(lang)) {
+    code = code.replace(new RegExp(match[0], 'i'), '')
+  }
 
-//   if (isExisted(imagePath)) {
-//     return ctx.answerInlineQuery([getPhotoData(imagePath)])
-//   }
+  const html = messages.getHtml(code, theme, lang)
+  const imagePath = getTempPath(ctx, getImageFileName(html, theme))
 
-//   console.log(html, imagePath, webshotOptions)
+  if (isExisted(imagePath)) {
+    return ctx.answerInlineQuery([getPhotoData(imagePath)])
+  }
 
-//   webshot(html, imagePath, webshotOptions, (err) => err
-//     ? console.log(err)
-//     : ctx.answerInlineQuery([getPhotoData(imagePath)]))
+  // console.log(html, imagePath, webshotOptions)
 
-//   return true
-// })
+  webshot(html, imagePath, webshotOptions, (err) => {
+    if (err) return console.log(err)
+
+    ctx.answerInlineQuery([getPhotoData(imagePath.replace(
+      '/home/dev812/web/syntax-highlighter-bot/images/',
+      ''
+    ))])
+
+    return true
+  })
+
+  return true
+})
 // ctx.telegram.answerInlineQuery(ctx.inlineQuery.id, result)
 
 /**

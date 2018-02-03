@@ -41,17 +41,19 @@ export const filenameFix = (file) => {
 
 export const getFileURL = (file) => `${url}${filenameFix(file)}`
 
+export const getInlineFileURL = (file) => `${url}images/${filenameFix(file)}`
+
 export const getImageWidth = (file) => sizeOf(getPath(file)).width
 
 export const getImageHeight = (file) => sizeOf(getPath(file)).height
 
 export const getPhotoData = (file, idx = null) => ({
   type: 'photo',
-  photo_url: getFileURL(file),
-  thumb_url: getFileURL(file),
+  photo_url: getInlineFileURL(file),
+  thumb_url: getInlineFileURL(file),
   photo_width: getImageWidth(file),
   photo_height: getImageHeight(file),
-  id: file + (idx || ''),
+  id: (file + (idx || '')).replace(/^\d+\/([0-9a-f]+)_\w+\.\w+$/g, '$1'),
 })
 
 export const isPrivateChat = ({ chat }) => chat.type === 'private'
@@ -88,3 +90,11 @@ export const makeUserFolder = (user) => {
 
 // eslint-disable-next-line no-console
 export const onError = (err) => console.log(err)
+
+export const clearFolder = ({ id }) => {
+  const filePath = path.resolve(`${IMAGES_DIR}/${id}`)
+
+  fs.readdir(filePath, (err, files) => files && files.length && files.forEach((file) => {
+    fs.unlinkSync(`${filePath}/${file}`)
+  }))
+}
