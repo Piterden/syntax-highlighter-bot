@@ -29,13 +29,7 @@ const server = express()
 const bot = new Telegraf(ENV.BOT_TOKEN, { telegram: { webhookReply: true } })
 
 server.use(bot.webhookCallback(`/${ENV.WEBHOOK_PATH}`))
-
 server.use('/images', express.static('images'))
-
-server.post(
-  `/${ENV.WEBHOOK_PATH}`,
-  (req, res) => bot.handleUpdate(req.body, res)
-)
 
 // Set telegram webhook
 bot.telegram.setWebhook(`${url}${ENV.WEBHOOK_PATH}`, tlsOptions.cert)
@@ -52,11 +46,13 @@ bot.use((ctx, next) => {
   const start = Date.now()
 
   return next(ctx).then(() => {
-    console.log(`${ctx.message}
-${ctx.from}
-Response time ${Date.now() - start}ms
+    console.log(`
+${JSON.stringify(ctx.message, null, '  ')}
 ----------------------------------------
-`)
+${JSON.stringify(ctx.from, null, '  ')}
+----------------------------------------
+Response time ${Date.now() - start}ms
+========================================`)
   })
 })
 
