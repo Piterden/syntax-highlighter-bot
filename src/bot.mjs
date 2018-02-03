@@ -66,7 +66,7 @@ bot.use((ctx, next) => ctx.state.user ? next(ctx) : UserModel.store(ctx, next))
  */
 bot.start((ctx) => isPrivateChat(ctx) && ctx.replyWithMarkdown(
   messages.welcomeUser(ctx.state.user || chatUser(ctx)),
-  Markup.removeKeyboard().extra()
+  { ...Markup.removeKeyboard().extra(), ...{ disable_web_page_preview: true } }
 ))
 
 /**
