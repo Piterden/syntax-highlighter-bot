@@ -5,6 +5,7 @@ module.exports = {
       database: 'syntax',
       user: 'syntax',
       password: 'syntax',
+      charset: 'utf8mb4',
     },
     pool: {
       min: 2,
@@ -21,6 +22,7 @@ module.exports = {
       database: 'syntax',
       user: 'syntax',
       password: 'syntax',
+      charset: 'utf8mb4',
     },
     pool: {
       min: 2,
@@ -37,6 +39,7 @@ module.exports = {
       database: 'syntax',
       user: 'syntax',
       password: 'syntax',
+      charset: 'utf8mb4',
     },
     pool: {
       min: 2,
