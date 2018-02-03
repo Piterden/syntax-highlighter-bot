@@ -56,19 +56,12 @@ export const getPhotoData = (file, idx = null) => ({
 
 export const isPrivateChat = ({ chat }) => chat.type === 'private'
 
-export const chatUser = ({ from }) => {
-  if (!from) return false
-  const user = { ...{}, ...from }
-
-  delete user.is_bot
-  return user
-}
+export const chatUser = ({ from, state }) => state.user || from
 
 export const themesKeyboard = (themes, cache = '') => themes
   .map((theme, idx) => {
     if ((idx + 1) % cols) {
-      // eslint-disable-next-line no-param-reassign
-      cache = `🎨 ${getThemeName(theme)}`
+      cache = `🎨 ${getThemeName(theme)}` // eslint-disable-line no-param-reassign
       return idx - 1 < themes.length ? false : cache
     }
     return [cache, `🎨 ${getThemeName(theme)}`]

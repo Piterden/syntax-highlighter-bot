@@ -49,24 +49,21 @@ https
  * Log middleware
  */
 bot.use((ctx, next) => {
-  const start = new Date()
+  const start = Date.now()
 
   return next(ctx).then(() => {
-    console.log(ctx.message)
-    console.log()
-    console.log(ctx.from)
-    console.log()
-    console.log(`Response time ${(new Date()) - start}ms`)
-    console.log('\n----------------------------------------\n')
+    console.log(`${ctx.message}
+${ctx.from}
+Response time ${Date.now() - start}ms
+----------------------------------------
+`)
   })
 })
 
 /**
  * User middleware
  */
-bot.use((ctx, next) => ctx.state.user
-  ? next(ctx)
-  : UserModel.store(ctx, next))
+bot.use((ctx, next) => ctx.state.user ? next(ctx) : UserModel.store(ctx, next))
 
 /**
  * Start bot command
@@ -96,7 +93,7 @@ bot.command('theme', (ctx) => isPrivateChat(ctx)
 /**
  * Theme choose command
  */
-bot.hears(/^🎨 (.+)/, (ctx) => {
+bot.hears(/^?? (.+)/, (ctx) => {
   const theme = getThemeSlug(ctx.match[1])
 
   if (!themes.includes(theme)) return
