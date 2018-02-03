@@ -99,16 +99,12 @@ bot.hears(/^🎨 (.+)/, (ctx) => {
 
   webshot(messages.getHtml(body, theme), filePath, webshotOptions, (err) => {
     if (err) return console.log(err)
+    const button = Markup.callbackButton('Apply theme', `/apply/${theme}`)
 
     ctx.replyWithChatAction('upload_photo')
     return ctx.replyWithPhoto(
       { url: getFileURL(filePath) },
-      Markup
-        .inlineKeyboard([
-          Markup.callbackButton('Apply theme', `/apply/${theme}`),
-        ])
-        .removeKeyboard()
-        .extra()
+      Markup.inlineKeyboard([button]).removeKeyboard().extra()
     )
   })
 })
