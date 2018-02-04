@@ -3,6 +3,7 @@ import path from 'path'
 import highlight from 'highlight.js'
 
 import { ENV } from './config'
+import { getThemeSlug } from './methods'
 
 
 const { BOT_USER } = ENV
@@ -10,7 +11,7 @@ const cols = 2
 const maxWidth = 16
 
 const getThemeCssFilePath = (theme) => path
-  .resolve(`node_modules/highlight.js/styles/${theme}.css`)
+  .resolve(`node_modules/highlight.js/styles/${getThemeSlug(theme)}.css`)
 
 const readCss = (theme) => fs.readFileSync(getThemeCssFilePath(theme))
 

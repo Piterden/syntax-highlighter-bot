@@ -116,11 +116,14 @@ server.bot.entity(({ type }) => type === 'pre', (ctx) => {
 
   let code = ctx.message.text.slice(entity.offset, entity.offset + entity.length)
   const match = code.match(/^(\w+)\n/)
-  const theme = ctx.state.user ? ctx.state.user.theme : 'github'
-  const lang = match && match[1]
+  const theme = ctx.state && ctx.state.user ? ctx.state.user.theme : 'github'
+  let lang = match && match[1]
 
   if (match && langs.includes(lang)) {
     code = code.replace(new RegExp(match && match[0], 'i'), '')
+  }
+  else {
+    lang = undefined
   }
 
   const html = messages.getHtml(code, theme, lang)
