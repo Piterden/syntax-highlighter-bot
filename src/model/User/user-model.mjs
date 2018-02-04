@@ -52,6 +52,7 @@ class UserModel extends Model {
         lastName: { type: 'string', maxLength: 255 },
         username: { type: 'string', minLength: 1, maxLength: 255 },
         languageCode: { type: 'string', maxLength: 2, default: 'en' },
+        isBot: { type: 'boolean' },
         theme: { type: 'string', maxLength: 40, default: 'github' },
         createdAt: { type: 'datetime' },
         updatedAt: { type: 'datetime' },
