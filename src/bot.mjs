@@ -1,15 +1,13 @@
 /* eslint-disable no-console */
 import Knex from 'knex'
-import https from 'https'
-import express from 'express'
 import webshot from 'webshot'
 import Telegraf from 'telegraf'
 import Markup from 'telegraf/markup'
 
 import dbConfig from '../knexfile'
+import { webshotOptions, ENV } from './config/config'
 import { messages, themes, langs } from './config/messages'
-import { tlsOptions, webshotOptions, url, ENV } from './config/config'
-import { getPath, getTempPath, getThemeSlug, getThemeName, getImageFileName,
+import { getPath, getUserPath, getThemeSlug, getThemeName, getImageFileName,
   isExisted, getFileURL, getPhotoData, isPrivateChat, chatUser, themesKeyboard,
   replyWithPhoto, onError, clearFolder } from './config/methods'
 
@@ -81,16 +79,21 @@ server.bot.command('theme', (ctx) => isPrivateChat(ctx)
  * Theme choose command
  */
 server.bot.hears(/^🎨 (.+)/, (ctx) => {
-  const theme = getThemeSlug(ctx.match[1])
+  const themeSlug = getThemeSlug(ctx.match[1])
+  const themeName = getThemeName(themeSlug)
 
-  if (!themes.includes(theme)) return
+  if (!themes.includes(themeSlug)) return
 
-  const body = messages.demoCode(getThemeName(theme))
-  const filePath = getPath(getImageFileName(body, theme))
+  const body = messages.demoCode(getThemeName(themeSlug))
+  const filePath = getPath(getImageFileName(body, themeSlug))
 
-  webshot(messages.getHtml(body, theme), filePath, webshotOptions, (err) => {
+  webshot(messages.getHtml(body, themeSlug), filePath, webshotOptions, (err) => {
     if (err) return console.log(err)
-    const button = Markup.callbackButton('Apply theme', `/apply/${theme}`)
+
+    const button = Markup.callbackButton(
+      `Apply ${themeName} theme`,
+      `/apply/${themeSlug}`
+    )
 
     ctx.replyWithChatAction('upload_photo')
     return ctx.replyWithPhoto(
@@ -159,7 +162,7 @@ server.bot.on('inline_query', (ctx) => {
   }
 
   const html = messages.getHtml(code, theme, lang)
-  const imagePath = getTempPath(ctx, getImageFileName(html, theme))
+  const imagePath = getUserPath(ctx, getImageFileName(html, theme))
 
   if (isExisted(imagePath)) {
     return ctx.answerInlineQuery([getPhotoData(imagePath)])

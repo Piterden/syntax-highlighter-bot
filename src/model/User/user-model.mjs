@@ -1,7 +1,7 @@
 import Objection from 'objection'
 import Markup from 'telegraf/markup'
 import { messages } from '../../config/messages'
-import { chatUser, makeUserFolder, onError } from '../../config/methods'
+import { chatUser, makeUserFolder, onError, getThemeName } from '../../config/methods'
 
 
 const { Model, snakeCaseMappers } = Objection
@@ -93,10 +93,13 @@ class UserModel extends Model {
     const chatUserData = chatUser(ctx)
 
     this.query()
-      .patchAndFetchById(chatUserData.id, { theme: ctx.match[1] })
+      .patchAndFetchById(chatUserData.id, { theme: getThemeName(ctx.match[1]) })
       .then((user) => {
         ctx.answerCbQuery()
-        ctx.replyWithMarkdown(messages.themeChanged(user), Markup.removeKeyboard().extra())
+        ctx.replyWithMarkdown(
+          messages.themeChanged(user),
+          Markup.removeKeyboard().extra()
+        )
       })
       .catch(onError)
   }

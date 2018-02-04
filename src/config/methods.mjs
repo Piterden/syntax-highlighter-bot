@@ -17,7 +17,8 @@ export const md5 = (string) => crypto
 
 export const getPath = (file) => path.resolve(`${IMAGES_DIR}/${file}`)
 
-export const getTempPath = (ctx, file) => path.resolve(`${IMAGES_DIR}/${ctx.state && ctx.state.user && ctx.state.user.id}/${file}`)
+export const getUserPath = ({ state }, file) => path
+  .resolve(`${IMAGES_DIR}/${state && state.user && state.user.id}/${file}`)
 
 export const getThemeSlug = (name) => name
   .split(' ')
