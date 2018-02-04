@@ -1,9 +1,3 @@
-# This file is for unifying the coding style for different editors and IDEs
-# editorconfig.org
-
-# PHP PSR-2 Coding Standards
-# http://www.php-fig.org/psr/psr-2/
-
 root = true
 
 [*.php]

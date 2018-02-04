@@ -9,10 +9,11 @@ import Markup from 'telegraf/markup'
 import dbConfig from '../knexfile'
 import { messages, themes, langs } from './config/messages'
 import { tlsOptions, webshotOptions, url, ENV } from './config/config'
-
 import { getPath, getTempPath, getThemeSlug, getThemeName, getImageFileName,
   isExisted, getFileURL, getPhotoData, isPrivateChat, chatUser, themesKeyboard,
   replyWithPhoto, onError, clearFolder } from './config/methods'
+
+import Server from './server'
 
 import UserModel from './model/User/user-model'
 import ChatModel from './model/Chat/chat-model'
@@ -25,24 +26,14 @@ ChatModel.knex(knex)
 UserModel.knex(knex)
 ChunkModel.knex(knex)
 
-const server = express()
-const bot = new Telegraf(ENV.BOT_TOKEN, { telegram: { webhookReply: true } })
-
-server.use(bot.webhookCallback(`/${ENV.WEBHOOK_PATH}`))
-server.use('/images', express.static('images'))
-
-// Set telegram webhook
-bot.telegram.setWebhook(`${url}${ENV.WEBHOOK_PATH}`, tlsOptions.cert)
-
-// Start Express Server
-https
-  .createServer(tlsOptions, server)
-  .listen(ENV.WEBHOOK_PORT, ENV.WEBHOOK_DOMAIN)
+const server = new Server(new Telegraf(ENV.BOT_TOKEN, {
+  telegram: { webhookReply: true },
+}))
 
 /**
  * Log middleware
  */
-bot.use((ctx, next) => {
+server.bot.use((ctx, next) => {
   const start = Date.now()
 
   return next(ctx).then(() => {
@@ -59,12 +50,12 @@ Response time ${Date.now() - start}ms
 /**
  * User middleware
  */
-bot.use((ctx, next) => ctx.state.user ? next(ctx) : UserModel.store(ctx, next))
+server.bot.use((ctx, next) => ctx.state.user ? next(ctx) : UserModel.store(ctx, next))
 
 /**
  * Start bot command
  */
-bot.start((ctx) => isPrivateChat(ctx) && ctx.replyWithMarkdown(
+server.bot.start((ctx) => isPrivateChat(ctx) && ctx.replyWithMarkdown(
   messages.welcomeUser(ctx.state.user || chatUser(ctx)),
   { ...Markup.removeKeyboard().extra(), ...{ disable_web_page_preview: true } }
 ))
@@ -72,14 +63,14 @@ bot.start((ctx) => isPrivateChat(ctx) && ctx.replyWithMarkdown(
 /**
  * Show languages list
  */
-bot.command('langs', (ctx) => isPrivateChat(ctx)
+server.bot.command('langs', (ctx) => isPrivateChat(ctx)
   ? ctx.replyWithMarkdown(messages.langsList())
   : ctx.reply(messages.themeGroup))
 
 /**
  * Show themes list
  */
-bot.command('theme', (ctx) => isPrivateChat(ctx)
+server.bot.command('theme', (ctx) => isPrivateChat(ctx)
   ? ctx.replyWithMarkdown(
     messages.themeChoose(ctx.state.user.theme),
     Markup.keyboard(themesKeyboard(themes)).oneTime().resize().extra()
@@ -89,7 +80,7 @@ bot.command('theme', (ctx) => isPrivateChat(ctx)
 /**
  * Theme choose command
  */
-bot.hears(/^🎨 (.+)/, (ctx) => {
+server.bot.hears(/^🎨 (.+)/, (ctx) => {
   const theme = getThemeSlug(ctx.match[1])
 
   if (!themes.includes(theme)) return
@@ -112,12 +103,12 @@ bot.hears(/^🎨 (.+)/, (ctx) => {
 /**
  * Save theme
  */
-bot.action(/^\/apply\/(.+)$/, (ctx) => UserModel.applyTheme(ctx))
+server.bot.action(/^\/apply\/(.+)$/, (ctx) => UserModel.applyTheme(ctx))
 
 /**
  * Catch code message
  */
-bot.entity(({ type }) => type === 'pre', (ctx) => {
+server.bot.entity(({ type }) => type === 'pre', (ctx) => {
   const entity = ctx.message.entities.find((ent) => ent.type === 'pre')
 
   let code = ctx.message.text.slice(entity.offset, entity.offset + entity.length)
@@ -152,16 +143,19 @@ bot.entity(({ type }) => type === 'pre', (ctx) => {
 /**
  * Inline query
  */
-bot.on('inline_query', (ctx) => {
+server.bot.on('inline_query', (ctx) => {
   let code = ctx.update.inline_query.query
   const match = code.match(/^(\w+)\n/)
-  const lang = match && match[1]
+  let lang = match && match[1]
   const theme = ctx.state && ctx.state.user ? ctx.state.user.theme : 'github'
 
   clearFolder(ctx.state && ctx.state.user)
 
   if (match && langs.includes(lang)) {
     code = code.replace(new RegExp(match[0], 'i'), '')
+  }
+  else {
+    lang = undefined
   }
 
   const html = messages.getHtml(code, theme, lang)
@@ -173,25 +167,21 @@ bot.on('inline_query', (ctx) => {
 
   // console.log(html, imagePath, webshotOptions)
 
-  webshot(html, imagePath, webshotOptions, (err) => {
+  return webshot(html, imagePath, webshotOptions, (err) => {
     if (err) return console.log(err)
 
-    ctx.answerInlineQuery([getPhotoData(imagePath.replace(
+    return ctx.answerInlineQuery([getPhotoData(imagePath.replace(
       '/home/dev812/web/syntax-highlighter-bot/images/',
       ''
     ))])
-
-    return true
   })
-
-  return true
 })
 // ctx.telegram.answerInlineQuery(ctx.inlineQuery.id, result)
 
 /**
  * Bot was added to a group
  */
-bot.on(['new_chat_members'], (ctx) => {
+server.bot.on(['new_chat_members'], (ctx) => {
   if (ctx.message.new_chat_member.username !== ENV.BOT_USER) return
 
   const onSuccess = () => ctx.replyWithMarkdown(messages.welcomeGroup())
@@ -218,7 +208,7 @@ bot.on(['new_chat_members'], (ctx) => {
 /**
  * Bot was removed from group
  */
-bot.on(['left_chat_member'], (ctx) => {
+server.bot.on(['left_chat_member'], (ctx) => {
   if (ctx.message.left_chat_member.username !== ENV.BOT_USER) return
 
   ChatModel.query()
