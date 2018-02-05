@@ -86,13 +86,11 @@ class ChunkModel extends Model {
   }
 
   /**
-   * Store the chunk of code
+   * Store the chunk of a code
    *
    * @static
-   * @param {Context} ctx
-   * @param {string} filename
-   * @param {string} source
-   * @param {string} lang
+   * @param {{userId,chatId,filename,lang,source}} data The chunk data
+   * @param {Function} cb The callback function
    */
   static store(data, cb) {
     this.query()
