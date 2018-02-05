@@ -82,7 +82,7 @@ server.bot.hears(/^🎨 (.+)/, (ctx) => {
   const themeSlug = getThemeSlug(ctx.match[1])
   const themeName = getThemeName(themeSlug)
 
-  if (!themes.includes(themeSlug)) return
+  if (!themes.includes(themeSlug)) return false
 
   const body = messages.demoCode(getThemeName(themeSlug))
   const filePath = getPath(getImageFileName(body, themeSlug))
@@ -96,9 +96,10 @@ server.bot.hears(/^🎨 (.+)/, (ctx) => {
     )
 
     ctx.replyWithChatAction('upload_photo')
+
     return ctx.replyWithPhoto(
       { url: getFileURL(filePath) },
-      Markup.inlineKeyboard([button]).removeKeyboard().extra()
+      Markup.inlineKeyboard([button]).extra()
     )
   })
 })
@@ -113,25 +114,26 @@ server.bot.action(/^\/apply\/(.+)$/, (ctx) => UserModel.applyTheme(ctx))
  */
 server.bot.entity(({ type }) => type === 'pre', (ctx) => {
   const entity = ctx.message.entities.find((ent) => ent.type === 'pre')
-
   let code = ctx.message.text.slice(entity.offset, entity.offset + entity.length)
   const match = code.match(/^(\w+)\n/)
-  const theme = ctx.state && ctx.state.user ? ctx.state.user.theme : 'github'
-  let lang = match && match[1]
+  let lang
+  let full
+  const themeSlug = ctx.state && ctx.state.user ? ctx.state.user.theme : 'github'
 
-  if (match && langs.includes(lang)) {
-    code = code.replace(new RegExp(match && match[0], 'i'), '')
+  if (match && match[1] && langs.includes(match[1])) {
+    [full, lang] = match
+    code = code.replace(new RegExp(full, 'i'), '')
   }
   else {
-    lang = undefined
+    lang = 'auto'
   }
 
-  const html = messages.getHtml(code, theme, lang)
-  const imagePath = getPath(getImageFileName(html, theme))
+  const html = messages.getHtml(code, themeSlug, lang)
+  const imagePath = getUserPath(ctx, getImageFileName(html, themeSlug))
 
   ChunkModel.store(ctx, {
-    filename: getImageFileName(html, theme),
-    lang: lang || 'auto',
+    filename: getImageFileName(html, themeSlug),
+    lang,
     source: code,
   })
 

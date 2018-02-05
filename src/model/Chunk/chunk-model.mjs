@@ -78,7 +78,7 @@ class ChunkModel extends Model {
         relation: Model.BelongsToOneRelation,
         modelClass: ChatModel,
         join: {
-          from: 'chunks.userId',
+          from: 'chunks.chatId',
           to: 'chats.id',
         },
       },
@@ -99,9 +99,15 @@ class ChunkModel extends Model {
     const chatId = ctx.chat.id
 
     this.query()
-      .insert({ filename, userId, chatId, lang, source })
-      .then()
-      .catch(onError)
+      .where('filename', filename)
+      .then((chunk) => {
+        if (!chunk) {
+          this.query()
+            .insert({ filename, userId, chatId, lang, source })
+            .then()
+            .catch(onError)
+        }
+      })
   }
 
   /**
