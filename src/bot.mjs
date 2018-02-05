@@ -113,11 +113,11 @@ server.bot.action(/^\/apply\/(.+)$/, (ctx) => UserModel.applyTheme(ctx))
  * Catch code message
  */
 server.bot.entity(({ type }) => type === 'pre', (ctx) => {
+  let lang
+  let full
   const entity = ctx.message.entities.find((ent) => ent.type === 'pre')
   let code = ctx.message.text.slice(entity.offset, entity.offset + entity.length)
   const match = code.match(/^(\w+)\n/)
-  let lang
-  let full
   const themeSlug = ctx.state && ctx.state.user ? ctx.state.user.theme : 'github'
 
   if (match && match[1] && langs.includes(match[1])) {
@@ -129,12 +129,13 @@ server.bot.entity(({ type }) => type === 'pre', (ctx) => {
   }
 
   const html = messages.getHtml(code, themeSlug, lang)
-  const imagePath = getUserPath(ctx, getImageFileName(html, themeSlug))
+  const filename = getImageFileName(html, themeSlug)
+  const imagePath = getUserPath(ctx, filename)
 
   ChunkModel.store({
-    userId: ctx.state.user.id,
+    userId: ctx.state && ctx.state.user.id,
     chatId: ctx.chat.id,
-    filename: getImageFileName(html, themeSlug),
+    filename,
     lang,
     source: code,
   }, () => {})
