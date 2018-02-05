@@ -103,6 +103,7 @@ class ChunkModel extends Model {
             .catch(onError)
         }
       })
+      .catch(onError)
   }
 
   /**
