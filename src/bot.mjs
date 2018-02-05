@@ -131,11 +131,13 @@ server.bot.entity(({ type }) => type === 'pre', (ctx) => {
   const html = messages.getHtml(code, themeSlug, lang)
   const imagePath = getUserPath(ctx, getImageFileName(html, themeSlug))
 
-  ChunkModel.store(ctx, {
+  ChunkModel.store({
+    userId: ctx.state.user.id,
+    chatId: ctx.chat.id,
     filename: getImageFileName(html, themeSlug),
     lang,
     source: code,
-  })
+  }, () => {})
 
   if (isExisted(imagePath)) {
     return replyWithPhoto(ctx, imagePath)

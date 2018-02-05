@@ -94,17 +94,14 @@ class ChunkModel extends Model {
    * @param {string} source
    * @param {string} lang
    */
-  static store(ctx, { filename, lang, source }) {
-    const userId = ctx.state.user.id
-    const chatId = ctx.chat.id
-
+  static store(data, cb) {
     this.query()
-      .where('filename', filename)
+      .where('filename', data.filename)
       .then((chunk) => {
         if (!chunk) {
           this.query()
-            .insert({ filename, userId, chatId, lang, source })
-            .then()
+            .insert(data)
+            .then(cb)
             .catch(onError)
         }
       })
