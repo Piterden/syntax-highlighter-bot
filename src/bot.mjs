@@ -86,7 +86,7 @@ server.bot.hears(/^🎨 (.+)/, (ctx) => {
 
   if (!themes.includes(themeSlug)) return false
 
-  const body = messages.demoCode(getThemeName(themeSlug))
+  const body = messages.demoCode(themeName)
   const filePath = getPath(getImageFileName(body, themeSlug))
 
   return webshot(messages.getHtml(body, themeSlug), filePath, webshotOptions, (err) => {
