@@ -48,7 +48,9 @@ Response time ${Date.now() - start}ms
 /**
  * User middleware
  */
-server.bot.use((ctx, next) => ctx.state.user ? next(ctx) : UserModel.store(ctx, next))
+server.bot.use((ctx, next) => ctx.state.user
+  ? next(ctx)
+  : UserModel.store(ctx, next))
 
 /**
  * Start bot command
@@ -87,7 +89,7 @@ server.bot.hears(/^🎨 (.+)/, (ctx) => {
   const body = messages.demoCode(getThemeName(themeSlug))
   const filePath = getPath(getImageFileName(body, themeSlug))
 
-  webshot(messages.getHtml(body, themeSlug), filePath, webshotOptions, (err) => {
+  return webshot(messages.getHtml(body, themeSlug), filePath, webshotOptions, (err) => {
     if (err) return console.log(err)
 
     const button = Markup.callbackButton(
@@ -107,7 +109,17 @@ server.bot.hears(/^🎨 (.+)/, (ctx) => {
 /**
  * Save theme
  */
-server.bot.action(/^\/apply\/(.+)$/, (ctx) => UserModel.applyTheme(ctx))
+server.bot.action(/^\/apply\/(.+)$/, (ctx) => UserModel.applyTheme(
+  chatUser(ctx),
+  getThemeName(ctx.match[1]),
+  (user) => {
+    ctx.answerCbQuery()
+    ctx.replyWithMarkdown(
+      messages.themeChanged(user),
+      Markup.removeKeyboard().extra()
+    )
+  }
+))
 
 /**
  * Catch code message

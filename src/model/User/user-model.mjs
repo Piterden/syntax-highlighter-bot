@@ -11,7 +11,7 @@ class UserModel extends Model {
    * The DB table name
    *
    * @static
-   * @returns {string}
+   * @return {string}
    */
   static get tableName() {
     return 'users'
@@ -30,7 +30,7 @@ class UserModel extends Model {
    * Default eager behavior
    *
    * @static
-   * @returns {EagerAlgorithm}
+   * @return {EagerAlgorithm}
    */
   static get defaultEagerAlgorithm() {
     return Model.JoinEagerAlgorithm
@@ -40,7 +40,7 @@ class UserModel extends Model {
    * JSON schema getter
    *
    * @static
-   * @returns {Object}
+   * @return {Object}
    */
   static get jsonSchema() {
     return {
@@ -90,18 +90,10 @@ class UserModel extends Model {
       .catch(onError)
   }
 
-  static applyTheme(ctx) {
-    const chatUserData = chatUser(ctx)
-
+  static applyTheme({ id }, theme, cb) {
     this.query()
-      .patchAndFetchById(chatUserData.id, { theme: getThemeName(ctx.match[1]) })
-      .then((user) => {
-        ctx.answerCbQuery()
-        ctx.replyWithMarkdown(
-          messages.themeChanged(user),
-          Markup.removeKeyboard().extra()
-        )
-      })
+      .patchAndFetchById(id, { theme })
+      .then(cb)
       .catch(onError)
   }
 
