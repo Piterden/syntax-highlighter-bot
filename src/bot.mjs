@@ -57,7 +57,7 @@ server.bot.use((ctx, next) => ctx.state.user
  */
 server.bot.start((ctx) => isPrivateChat(ctx) && ctx.replyWithMarkdown(
   messages.welcomeUser(ctx.state.user || chatUser(ctx)),
-  { ...Markup.removeKeyboard().extra(), ...{ disable_web_page_preview: true } }
+  { ...Markup.removeKeyboard().extra(), disable_web_page_preview: true }
 ))
 
 /**
@@ -140,7 +140,7 @@ server.bot.entity(({ type }) => type === 'pre', (ctx) => {
     lang = 'auto'
   }
 
-  const html = messages.getHtml(code, themeSlug, lang)
+  const html = messages.getHtml(code, themeSlug, lang !== 'auto' && lang)
   const filename = getImageFileName(html, themeSlug)
   const imagePath = getUserPath(ctx, filename)
 
