@@ -1,0 +1,45 @@
+{
+  "name": "webshot",
+  "version": "0.18.0",
+  "description": "Easy website screenshots",
+  "author": "Brenden Kokoszka",
+  "contributors": [
+    {
+      "name": "Brenden Kokoszka",
+      "email": "brenden.kokoszka@gmail.com"
+    },
+    {
+      "name": "Matthew Chase Whittemore",
+      "email": "mcwhittemore@gmail.com"
+    }
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/brenden/node-webshot.git"
+  },
+  "engine": [
+    "node >=0.7.00"
+  ],
+  "dependencies": {
+    "graceful-fs": "~3.0.4",
+    "cross-spawn": "^0.2.3",
+    "tmp": "~0.0.25"
+  },
+  "optionalDependencies": {
+    "phantomjs-prebuilt": "^2.1.3"
+  },
+  "devDependencies": {
+    "imagemagick": "git://github.com/rsms/node-imagemagick.git",
+    "mocha": "*",
+    "should": "*"
+  },
+  "main": "./lib/webshot.js",
+  "scripts": {
+    "test": "mocha --ui bdd --reporter spec --require should ./test/core.js ./test/options/*"
+  },
+  "keywords": [
+    "screenshot",
+    "screengrab"
+  ]
+}

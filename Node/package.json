@@ -1,0 +1,19 @@
+{
+  "name": "syntaxhighlightbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "highlight.js": "^9.9.0",
+    "image-size": "^0.6.1",
+    "md5": "^2.2.1",
+    "node-telegram-bot-api": "^0.27.0",
+    "node-webshot": "git://github.com/brenden/node-webshot",
+    "rimraf": "^2.6.1"
+  }
+}
