@@ -1,11 +1,18 @@
+require('dotenv').load()
+
+
+const {
+  DB_DRIVER, DB_DATABASE, DB_USER, DB_PASSWORD, DB_CHARSET,
+} = process.env
+
 module.exports = {
   development: {
-    client: 'mysql',
+    client: DB_DRIVER,
     connection: {
-      database: 'syntax',
-      user: 'syntax',
-      password: 'syntax',
-      charset: 'utf8mb4',
+      database: DB_DATABASE,
+      user: DB_USER,
+      password: DB_PASSWORD,
+      charset: DB_CHARSET,
     },
     pool: {
       min: 2,
@@ -17,12 +24,12 @@ module.exports = {
   },
 
   staging: {
-    client: 'mysql',
+    client: DB_DRIVER,
     connection: {
-      database: 'syntax',
-      user: 'syntax',
-      password: 'syntax',
-      charset: 'utf8mb4',
+      database: DB_DATABASE,
+      user: DB_USER,
+      password: DB_PASSWORD,
+      charset: DB_CHARSET,
     },
     pool: {
       min: 2,
@@ -34,12 +41,12 @@ module.exports = {
   },
 
   production: {
-    client: 'mysql',
+    client: DB_DRIVER,
     connection: {
-      database: 'syntax',
-      user: 'syntax',
-      password: 'syntax',
-      charset: 'utf8mb4',
+      database: DB_DATABASE,
+      user: DB_USER,
+      password: DB_PASSWORD,
+      charset: DB_CHARSET,
     },
     pool: {
       min: 2,
