@@ -6,6 +6,11 @@ import { chatUser, makeUserFolder, onError, getThemeName } from '../../config/me
 
 const { Model, snakeCaseMappers } = Objection
 
+const unescapeUser = (user) => Object.keys(user).reduce((acc, key) => {
+  acc[key] = unescape(user[key])
+  return acc
+}, {})
+
 class UserModel extends Model {
   /**
    * The DB table name
@@ -73,7 +78,7 @@ class UserModel extends Model {
       .findById(chatUserData.id)
       .then((user) => {
         if (user) {
-          ctx.state.user = user
+          ctx.state.user = unescapeUser(user)
           return next(ctx)
         }
         return (
@@ -81,7 +86,7 @@ class UserModel extends Model {
             .insert({ ...chatUserData, theme: 'github' })
             // eslint-disable-next-line no-shadow
             .then((user) => {
-              ctx.state.user = user
+              ctx.state.user = unescapeUser(user)
               makeUserFolder(user)
               next(ctx)
             })

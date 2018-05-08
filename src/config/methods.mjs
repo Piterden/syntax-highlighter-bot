@@ -59,7 +59,12 @@ export const getPhotoData = (file, idx = null) => ({
 
 export const isPrivateChat = ({ chat }) => chat.type === 'private'
 
-export const chatUser = ({ from, state }) => state.user || from
+const escapeUser = (user) => Object.keys(user).reduce((acc, key) => {
+  acc[key] = escape(user[key])
+  return acc
+}, {})
+
+export const chatUser = (ctx) => escapeUser(ctx.state.user || ctx.from)
 
 export const themesKeyboard = (themes, cache = '') => themes
   .map((theme, idx) => {
