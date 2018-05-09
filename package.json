@@ -17,19 +17,22 @@
   "dependencies": {
     "@std/esm": "^0.17.3",
     "dotenv": "^4.0.0",
-    "express": "^4.16.2",
+    "eslint": "^4.19.1",
+    "express": "^4.16.3",
     "highlight.js": "^9.9.0",
+    "hoek": "^5.0.3",
     "image-size": "^0.6.2",
-    "knex": "^0.14.4",
+    "knex": "^0.14.6",
     "mysql": "^2.15.0",
-    "nodemon": "^1.17.1",
+    "nodemon": "^0.5.7",
     "objection": "^0.9.4",
-    "pg": "^7.4.1",
+    "pg": "^7.4.3",
+    "sshpk": "^1.14.1",
     "telegraf": "3.17.3",
     "webshot": "^0.18.0"
   },
   "devDependencies": {
-    "@atomix/eslint-config": "^6.2.0",
-    "babel-eslint": "^8.2.2"
+    "@atomix/eslint-config": "^6.4.0",
+    "babel-eslint": "^8.2.3"
   }
 }

@@ -7,7 +7,7 @@ import { chatUser, makeUserFolder, onError, getThemeName } from '../../config/me
 const { Model, snakeCaseMappers } = Objection
 
 const unescapeUser = (user) => Object.keys(user).reduce((acc, key) => {
-  acc[key] = unescape(user[key])
+  acc[key] = key !== 'id' ? unescape(user[key]) : Number(user[key])
   return acc
 }, {})
 
