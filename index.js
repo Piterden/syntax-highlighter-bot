@@ -1,5 +1,5 @@
 'use strict'
 
-require = require('@std/esm')(module)
+require = require('esm')(module)
 
-module.exports = require('./src/bot.mjs').default
+module.exports = require('./src/bot.mjs')

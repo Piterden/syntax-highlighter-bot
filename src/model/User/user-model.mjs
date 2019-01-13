@@ -75,15 +75,17 @@ class UserModel extends Model {
     const chatUserData = chatUser(ctx)
 
     this.query()
-      .findById(chatUserData.id)
+      .findById(+chatUserData.id)
       .then((user) => {
         if (user) {
           ctx.state.user = unescapeUser(user)
           return next(ctx)
         }
+        const { id, ...data } = chatUserData
+
         return (
           this.query()
-            .insert({ ...chatUserData, theme: 'github' })
+            .insert({ id: +id, ...data, theme: 'github' })
             // eslint-disable-next-line no-shadow
             .then((user) => {
               ctx.state.user = unescapeUser(user)
@@ -98,7 +100,7 @@ class UserModel extends Model {
 
   static applyTheme({ id }, theme, cb) {
     this.query()
-      .patchAndFetchById(id, { theme })
+      .patchAndFetchById(+id, { theme })
       .then(cb)
       .catch(onError)
   }

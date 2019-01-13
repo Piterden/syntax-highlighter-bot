@@ -7,9 +7,11 @@ import Markup from 'telegraf/markup'
 import dbConfig from '../knexfile'
 import { webshotOptions, ENV } from './config/config'
 import { messages, themes, langs } from './config/messages'
-import { getPath, getUserPath, getThemeSlug, getThemeName, getImageFileName,
+import {
+  getPath, getUserPath, getThemeSlug, getThemeName, getImageFileName,
   isExisted, getFileURL, getPhotoData, isPrivateChat, chatUser, themesKeyboard,
-  replyWithPhoto, onError, clearFolder } from './config/methods'
+  replyWithPhoto, onError, clearFolder,
+} from './config/methods'
 
 import Server from './server'
 
@@ -55,22 +57,43 @@ server.bot.use((ctx, next) => ctx.state.user
 /**
  * Start bot command
  */
-server.bot.start((ctx) => isPrivateChat(ctx) && ctx.replyWithMarkdown(
-  messages.welcomeUser(ctx.state.user || chatUser(ctx)),
-  { ...Markup.removeKeyboard().extra(), disable_web_page_preview: true }
-))
+server.bot.hears(/^\/start/, async (ctx) => {
+  console.log(ctx)
+  // if (isPrivateChat(ctx)) {
+  await ctx.replyWithMarkdown(
+    messages.welcomeUser(ctx.state.user || chatUser(ctx))
+    // { ...Markup.removeKeyboard().extra(), disable_web_page_preview: true }
+  )
+  return
+  // }
+  // console.log(await ctx.replyWithMarkdown(
+  //   messages.themeGroup,
+  //   { ...Markup.removeKeyboard().extra(), disable_web_page_preview: true }
+  // ))
+  // await ctx.replyWithMarkdown(
+  //   messages.themeGroup,
+  //   { ...Markup.removeKeyboard().extra(), disable_web_page_preview: true }
+  // )
+})
+
+const langsCommand = async (ctx) => {
+  if (isPrivateChat(ctx)) {
+    await ctx.replyWithMarkdown(messages.langsList())
+    return
+  }
+  await ctx.replyWithMarkdown(messages.themeGroup)
+}
 
 /**
  * Show languages list
  */
-server.bot.command('langs', (ctx) => isPrivateChat(ctx)
-  ? ctx.replyWithMarkdown(messages.langsList())
-  : ctx.reply(messages.themeGroup))
+server.bot.command('langs@cris_highlight_bot', langsCommand)
+// server.bot.command('langs', langsCommand)
 
 /**
  * Show themes list
  */
-server.bot.command('theme', (ctx) => isPrivateChat(ctx)
+server.bot.command('theme@cris_highlight_bot', (ctx) => isPrivateChat(ctx)
   ? ctx.replyWithMarkdown(
     messages.themeChoose(ctx.state.user.theme),
     Markup.keyboard(themesKeyboard(themes)).oneTime().resize().extra()
@@ -145,8 +168,8 @@ server.bot.entity(({ type }) => type === 'pre', (ctx) => {
   const imagePath = getUserPath(ctx, filename)
 
   ChunkModel.store({
-    userId: ctx.state && ctx.state.user.id,
-    chatId: ctx.chat.id,
+    userId: ctx.state && +ctx.state.user.id,
+    chatId: +ctx.chat.id,
     filename,
     lang,
     source: code,
@@ -210,15 +233,15 @@ server.bot.on(['new_chat_members'], (ctx) => {
   const onSuccess = () => ctx.replyWithMarkdown(messages.welcomeGroup())
 
   ChatModel.query()
-    .findById(ctx.chat.id)
+    .findById(+ctx.chat.id)
     .then((chat) => chat
       ? ChatModel.query()
-        .patchAndFetchById(chat.id, { active: true })
+        .patchAndFetchById(+chat.id, { active: true })
         .then(onSuccess)
         .catch(onError)
       : ChatModel.query()
         .insert({
-          id: ctx.chat.id,
+          id: +ctx.chat.id,
           title: ctx.chat.title,
           type: ctx.chat.type,
           active: true,
@@ -235,7 +258,7 @@ server.bot.on(['left_chat_member'], (ctx) => {
   if (ctx.message.left_chat_member.username !== ENV.BOT_USER) return
 
   ChatModel.query()
-    .patchAndFetchById(ctx.chat.id, { active: false })
+    .patchAndFetchById(+ctx.chat.id, { active: false })
     .then()
     .catch(onError)
 })
