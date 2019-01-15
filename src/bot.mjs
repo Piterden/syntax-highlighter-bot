@@ -57,26 +57,23 @@ server.bot.use((ctx, next) => ctx.state.user
 /**
  * Start bot command
  */
-server.bot.hears(/^\/start/, async (ctx) => {
-  console.log(ctx)
-  // if (isPrivateChat(ctx)) {
+server.bot.start(async (ctx) => {
+  ctx.reply('fix')
+  if (isPrivateChat(ctx)) {
+    await ctx.replyWithMarkdown(
+      messages.welcomeUser(ctx.state.user || chatUser(ctx)),
+      { ...Markup.removeKeyboard().extra(), disable_web_page_preview: true }
+    )
+    return
+  }
   await ctx.replyWithMarkdown(
-    messages.welcomeUser(ctx.state.user || chatUser(ctx))
-    // { ...Markup.removeKeyboard().extra(), disable_web_page_preview: true }
+    messages.themeGroup,
+    { ...Markup.removeKeyboard().extra(), disable_web_page_preview: true }
   )
-  return
-  // }
-  // console.log(await ctx.replyWithMarkdown(
-  //   messages.themeGroup,
-  //   { ...Markup.removeKeyboard().extra(), disable_web_page_preview: true }
-  // ))
-  // await ctx.replyWithMarkdown(
-  //   messages.themeGroup,
-  //   { ...Markup.removeKeyboard().extra(), disable_web_page_preview: true }
-  // )
 })
 
 const langsCommand = async (ctx) => {
+  ctx.reply('fix')
   if (isPrivateChat(ctx)) {
     await ctx.replyWithMarkdown(messages.langsList())
     return
@@ -87,18 +84,22 @@ const langsCommand = async (ctx) => {
 /**
  * Show languages list
  */
-server.bot.command('langs@cris_highlight_bot', langsCommand)
-// server.bot.command('langs', langsCommand)
+server.bot.command('/langs', langsCommand)
 
 /**
  * Show themes list
  */
-server.bot.command('theme@cris_highlight_bot', (ctx) => isPrivateChat(ctx)
-  ? ctx.replyWithMarkdown(
-    messages.themeChoose(ctx.state.user.theme),
-    Markup.keyboard(themesKeyboard(themes)).oneTime().resize().extra()
-  )
-  : ctx.reply(messages.themeGroup))
+server.bot.command('/theme', async (ctx) => {
+  ctx.reply('fix')
+  if (isPrivateChat(ctx)) {
+    await ctx.replyWithMarkdown(
+      messages.themeChoose(ctx.state.user.theme),
+      Markup.keyboard(themesKeyboard(themes)).oneTime().resize().extra()
+    )
+    return
+  }
+  await ctx.reply(messages.themeGroup)
+})
 
 /**
  * Theme choose command
