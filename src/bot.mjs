@@ -54,10 +54,7 @@ server.bot.use((ctx, next) => ctx.state.user
   ? next(ctx)
   : UserModel.store(ctx, next))
 
-/**
- * Start bot command
- */
-server.bot.start(async (ctx) => {
+const startCommand = async (ctx) => {
   ctx.reply('fix')
   if (isPrivateChat(ctx)) {
     await ctx.replyWithMarkdown(
@@ -70,7 +67,13 @@ server.bot.start(async (ctx) => {
     messages.themeGroup,
     { ...Markup.removeKeyboard().extra(), disable_web_page_preview: true }
   )
-})
+}
+
+/**
+ * Start bot command
+ */
+server.bot.command('/start', startCommand)
+server.bot.command('/start@cris_highlight_bot', startCommand)
 
 const langsCommand = async (ctx) => {
   ctx.reply('fix')
@@ -85,11 +88,9 @@ const langsCommand = async (ctx) => {
  * Show languages list
  */
 server.bot.command('/langs', langsCommand)
+server.bot.command('/langs@cris_highlight_bot', langsCommand)
 
-/**
- * Show themes list
- */
-server.bot.command('/theme', async (ctx) => {
+const themeCommand = async (ctx) => {
   ctx.reply('fix')
   if (isPrivateChat(ctx)) {
     await ctx.replyWithMarkdown(
@@ -98,8 +99,14 @@ server.bot.command('/theme', async (ctx) => {
     )
     return
   }
-  await ctx.reply(messages.themeGroup)
-})
+  await ctx.replyWithMarkdown(messages.themeGroup)
+}
+
+/**
+ * Show themes list
+ */
+server.bot.command('/theme', themeCommand)
+server.bot.command('/theme@cris_highlight_bot', themeCommand)
 
 /**
  * Theme choose command
