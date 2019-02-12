@@ -13,6 +13,7 @@ export const tlsOptions = {
 }
 
 export const webshotOptions = {
+  streamType: 'png',
   siteType: 'html',
   captureSelector: '#code',
   quality: 100,

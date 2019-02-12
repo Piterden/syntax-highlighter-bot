@@ -235,38 +235,38 @@ server.bot.on('inline_query', (ctx) => {
 /**
  * Bot was added to a group
  */
-server.bot.on(['new_chat_members'], (ctx) => {
-  if (ctx.message.new_chat_member.username !== ENV.BOT_USER) return
+// server.bot.on(['new_chat_members'], (ctx) => {
+//   if (ctx.message.new_chat_member.username !== ENV.BOT_USER) return
 
-  const onSuccess = () => ctx.replyWithMarkdown(messages.welcomeGroup())
+//   const onSuccess = () => ctx.replyWithMarkdown(messages.welcomeGroup())
 
-  ChatModel.query()
-    .findById(+ctx.chat.id)
-    .then((chat) => chat
-      ? ChatModel.query()
-        .patchAndFetchById(+chat.id, { active: true })
-        .then(onSuccess)
-        .catch(onError)
-      : ChatModel.query()
-        .insert({
-          id: +ctx.chat.id,
-          title: ctx.chat.title,
-          type: ctx.chat.type,
-          active: true,
-        })
-        .then(onSuccess)
-        .catch(onError))
-    .catch(onError)
-})
+//   ChatModel.query()
+//     .findById(+ctx.chat.id)
+//     .then((chat) => chat
+//       ? ChatModel.query()
+//         .patchAndFetchById(+chat.id, { active: true })
+//         .then(onSuccess)
+//         .catch(onError)
+//       : ChatModel.query()
+//         .insert({
+//           id: +ctx.chat.id,
+//           title: ctx.chat.title,
+//           type: ctx.chat.type,
+//           active: true,
+//         })
+//         .then(onSuccess)
+//         .catch(onError))
+//     .catch(onError)
+// })
 
 /**
  * Bot was removed from group
  */
-server.bot.on(['left_chat_member'], (ctx) => {
-  if (ctx.message.left_chat_member.username !== ENV.BOT_USER) return
+// server.bot.on(['left_chat_member'], (ctx) => {
+//   if (ctx.message.left_chat_member.username !== ENV.BOT_USER) return
 
-  ChatModel.query()
-    .patchAndFetchById(+ctx.chat.id, { active: false })
-    .then()
-    .catch(onError)
-})
+//   ChatModel.query()
+//     .patchAndFetchById(+ctx.chat.id, { active: false })
+//     .then()
+//     .catch(onError)
+// })

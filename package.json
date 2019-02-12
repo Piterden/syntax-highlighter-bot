@@ -27,7 +27,7 @@
     "objection": "^1.3.0",
     "pg": "^7.5.0",
     "sshpk": "^1.14.2",
-    "telegraf": "^3.24.0",
+    "telegraf": "^3.26.0",
     "webshot": "^0.18.0"
   },
   "devDependencies": {

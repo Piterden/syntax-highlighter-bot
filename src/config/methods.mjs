@@ -86,6 +86,16 @@ export const replyWithPhoto = (ctx, image) => {
   )
 }
 
+export const replyWithDocument = (ctx, image) => {
+  ctx.replyWithChatAction('upload_document')
+  return ctx.replyWithDocument(
+    {
+      url: getFileURL(image),
+    },
+    Markup.removeKeyboard().extra()
+  )
+}
+
 export const makeUserFolder = (user) => {
   const filepath = path.resolve(`images/${user.id}`)
 
