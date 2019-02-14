@@ -15,6 +15,7 @@
   "author": "Denis Efremov <efremov.a.denis@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@pm2/io": "^3.1.1",
     "dotenv": "^6.0.0",
     "esm": "^3.0.84",
     "express": "^4.16.3",

@@ -63,10 +63,14 @@ const startCommand = async (ctx) => {
     )
     return
   }
-  await ctx.replyWithMarkdown(
+  const message = await ctx.replyWithMarkdown(
     messages.themeGroup,
     { ...Markup.removeKeyboard().extra(), disable_web_page_preview: true }
   )
+  
+  setTimeout(() => {  
+    ctx.deleteMessage(message.message_id)
+  }, 10000)
 }
 
 /**
@@ -81,7 +85,11 @@ const langsCommand = async (ctx) => {
     await ctx.replyWithMarkdown(messages.langsList())
     return
   }
-  await ctx.replyWithMarkdown(messages.themeGroup)
+  const message = await ctx.replyWithMarkdown(messages.themeGroup)
+
+  setTimeout(() => {
+    ctx.deleteMessage(message.message_id)
+  }, 10000)
 }
 
 /**
@@ -99,7 +107,11 @@ const themeCommand = async (ctx) => {
     )
     return
   }
-  await ctx.replyWithMarkdown(messages.themeGroup)
+  const message = await ctx.replyWithMarkdown(messages.themeGroup)
+  
+  setTimeout(() => {  
+    ctx.deleteMessage(message.message_id)
+  }, 10000)
 }
 
 /**
