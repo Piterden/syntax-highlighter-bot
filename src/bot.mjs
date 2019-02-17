@@ -67,8 +67,8 @@ const startCommand = async (ctx) => {
     messages.themeGroup,
     { ...Markup.removeKeyboard().extra(), disable_web_page_preview: true }
   )
-  
-  setTimeout(() => {  
+
+  setTimeout(() => {
     ctx.deleteMessage(message.message_id)
   }, 10000)
 }
@@ -108,8 +108,8 @@ const themeCommand = async (ctx) => {
     return
   }
   const message = await ctx.replyWithMarkdown(messages.themeGroup)
-  
-  setTimeout(() => {  
+
+  setTimeout(() => {
     ctx.deleteMessage(message.message_id)
   }, 10000)
 }
@@ -168,42 +168,42 @@ server.bot.action(/^\/apply\/(.+)$/, (ctx) => UserModel.applyTheme(
  * Catch code message
  */
 server.bot.entity(({ type }) => type === 'pre', (ctx) => {
-  let lang
-  let full
-  const entity = ctx.message.entities.find((ent) => ent.type === 'pre')
-  let code = ctx.message.text.slice(entity.offset, entity.offset + entity.length)
-  const match = code.match(/^(\w+)\n/)
-  const themeSlug = ctx.state && ctx.state.user ? ctx.state.user.theme : 'github'
+  ctx.message.entities.filter(({ type }) => type === 'pre')
+    .forEach((entity) => {
+      let lang
+      let full
+      let code = ctx.message.text.slice(entity.offset, entity.offset + entity.length)
+      const match = code.match(/^(\w+)\n/)
+      const themeSlug = ctx.state && ctx.state.user ? ctx.state.user.theme : 'github'
 
-  if (match && match[1] && langs.includes(match[1])) {
-    [full, lang] = match
-    code = code.replace(new RegExp(full, 'i'), '')
-  }
-  else {
-    lang = 'auto'
-  }
+      if (match && match[1] && langs.includes(match[1])) {
+        [full, lang] = match
+        code = code.replace(new RegExp(full, 'i'), '')
+      }
+      else {
+        lang = 'auto'
+      }
 
-  const html = messages.getHtml(code, themeSlug, lang !== 'auto' && lang)
-  const filename = getImageFileName(html, themeSlug)
-  const imagePath = getUserPath(ctx, filename)
+      const html = messages.getHtml(code, themeSlug, lang !== 'auto' && lang)
+      const filename = getImageFileName(html, themeSlug)
+      const imagePath = getUserPath(ctx, filename)
 
-  ChunkModel.store({
-    userId: ctx.state && +ctx.state.user.id,
-    chatId: +ctx.chat.id,
-    filename,
-    lang,
-    source: code,
-  }, () => {})
+      ChunkModel.store({
+        userId: ctx.state && +ctx.state.user.id,
+        chatId: +ctx.chat.id,
+        filename,
+        lang,
+        source: code,
+      }, () => {})
 
-  if (isExisted(imagePath)) {
-    return replyWithPhoto(ctx, imagePath)
-  }
+      if (isExisted(imagePath)) {
+        return replyWithPhoto(ctx, imagePath)
+      }
 
-  webshot(html, imagePath, webshotOptions, (err) => err
-    ? console.log(err)
-    : replyWithPhoto(ctx, imagePath))
-
-  return true
+      webshot(html, imagePath, webshotOptions, (err) => err
+        ? console.log(err)
+        : replyWithPhoto(ctx, imagePath))
+    })
 })
 
 /**
