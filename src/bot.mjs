@@ -182,6 +182,7 @@ server.bot.entity(({ type }) => type === 'pre', (ctx) => {
       }
       else {
         lang = 'auto'
+        code = code.replace(new RegExp('\\n', 'i'), '')
       }
 
       const html = messages.getHtml(code, themeSlug, lang !== 'auto' && lang)
