@@ -209,39 +209,39 @@ server.bot.entity(({ type }) => type === 'pre', (ctx) => {
 /**
  * Inline query
  */
-server.bot.on('inline_query', (ctx) => {
-  let code = ctx.update.inline_query.query
-  const match = code.match(/^(\w+)\n/)
-  let lang = match && match[1]
-  const theme = ctx.state && ctx.state.user ? ctx.state.user.theme : 'github'
+// server.bot.on('inline_query', (ctx) => {
+//   let code = ctx.update.inline_query.query
+//   const match = code.match(/^(\w+)\n/)
+//   let lang = match && match[1]
+//   const theme = ctx.state && ctx.state.user ? ctx.state.user.theme : 'github'
 
-  clearFolder(ctx.state && ctx.state.user)
+//   clearFolder(ctx.state && ctx.state.user)
 
-  if (match && langs.includes(lang)) {
-    code = code.replace(new RegExp(match[0], 'i'), '')
-  }
-  else {
-    lang = undefined
-  }
+//   if (match && langs.includes(lang)) {
+//     code = code.replace(new RegExp(match[0], 'i'), '')
+//   }
+//   else {
+//     lang = undefined
+//   }
 
-  const html = messages.getHtml(code, theme, lang)
-  const imagePath = getUserPath(ctx, getImageFileName(html, theme))
+//   const html = messages.getHtml(code, theme, lang)
+//   const imagePath = getUserPath(ctx, getImageFileName(html, theme))
 
-  if (isExisted(imagePath)) {
-    return ctx.answerInlineQuery([getPhotoData(imagePath)])
-  }
+//   if (isExisted(imagePath)) {
+//     return ctx.answerInlineQuery([getPhotoData(imagePath)])
+//   }
 
-  // console.log(html, imagePath, webshotOptions)
+//   // console.log(html, imagePath, webshotOptions)
 
-  return webshot(html, imagePath, webshotOptions, (err) => {
-    if (err) return console.log(err)
+//   return webshot(html, imagePath, webshotOptions, (err) => {
+//     if (err) return console.log(err)
 
-    return ctx.answerInlineQuery([getPhotoData(imagePath.replace(
-      '/home/dev812/web/syntax-highlighter-bot/images/',
-      ''
-    ))])
-  })
-})
+//     return ctx.answerInlineQuery([getPhotoData(imagePath.replace(
+//       '/home/dev812/web/syntax-highlighter-bot/images/',
+//       ''
+//     ))])
+//   })
+// })
 // ctx.telegram.answerInlineQuery(ctx.inlineQuery.id, result)
 
 /**
