@@ -82,7 +82,10 @@ export const replyWithPhoto = (ctx, image) => {
     {
       url: getFileURL(image),
     },
-    Markup.removeKeyboard().extra()
+    Markup.inlineKeyboard([[{
+      text: 'Remove',
+      callback_data: `remove::${ctx.from.id}`,
+    }]]).removeKeyboard().extra()
   )
 }
 

@@ -38,9 +38,7 @@ server.bot.use((ctx, next) => {
 
   return next(ctx).then(() => {
     console.log(`
-${JSON.stringify(ctx.message, null, '  ')}
-----------------------------------------
-${JSON.stringify(ctx.from, null, '  ')}
+${JSON.stringify(ctx.update, null, '  ')}
 ----------------------------------------
 Response time ${Date.now() - start}ms
 ========================================`)
@@ -205,6 +203,19 @@ server.bot.entity(({ type }) => type === 'pre', (ctx) => {
         ? console.log(err)
         : replyWithPhoto(ctx, imagePath))
     })
+})
+
+server.bot.action(/^remove::(\d+)$/, async (ctx) => {
+  ctx.answerCbQuery()
+  if (Number(ctx.match[1]) === ctx.update.callback_query.from.id) {
+    await ctx.telegram.deleteMessage(
+      ctx.update.callback_query.message.chat.id,
+      ctx.update.callback_query.message.message_id
+    )
+    ctx.answerCbQuery('Message removed.')
+    return
+  }
+  ctx.answerCbQuery('Sorry. Only authors are allowed to remove messages!')
 })
 
 /**
