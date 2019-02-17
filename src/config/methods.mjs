@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
+import webshot from 'webshot'
 import sizeOf from 'image-size'
 import Markup from 'telegraf/markup'
 
@@ -83,11 +84,33 @@ export const replyWithPhoto = (ctx, image) => {
       url: getFileURL(image),
     },
     Markup.inlineKeyboard([[{
-      text: 'Remove',
+      text: `Remove (only ${ctx.from.first_name} can)`,
       callback_data: `remove::${ctx.from.id}`,
     }]]).removeKeyboard().extra()
   )
 }
+
+export const replyWithMediaGroup = (ctx, images) => {
+  ctx.replyWithChatAction('upload_photo')
+  return ctx.replyWithMediaGroup(
+    images.map((image) => ({
+      type: 'photo',
+      media: {
+        url: getFileURL(image),
+      },
+    })),
+    Markup.inlineKeyboard([[{
+      text: `Remove (only ${ctx.from.first_name} can)`,
+      callback_data: `remove::${ctx.from.id}`,
+    }]]).removeKeyboard().extra()
+  )
+}
+
+export const getWebShot = (html, imagePath, webshotOptions) => new Promise((resolve, reject) => {
+  webshot(html, imagePath, webshotOptions, (err) => err
+    ? reject(err)
+    : resolve(imagePath))
+})
 
 export const replyWithDocument = (ctx, image) => {
   ctx.replyWithChatAction('upload_document')

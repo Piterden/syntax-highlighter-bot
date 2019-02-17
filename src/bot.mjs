@@ -10,7 +10,7 @@ import { messages, themes, langs } from './config/messages'
 import {
   getPath, getUserPath, getThemeSlug, getThemeName, getImageFileName,
   isExisted, getFileURL, getPhotoData, isPrivateChat, chatUser, themesKeyboard,
-  replyWithPhoto, onError, clearFolder,
+  replyWithPhoto, replyWithMediaGroup, onError, clearFolder, getWebShot,
 } from './config/methods'
 
 import Server from './server'
@@ -166,8 +166,10 @@ server.bot.action(/^\/apply\/(.+)$/, (ctx) => UserModel.applyTheme(
  * Catch code message
  */
 server.bot.entity(({ type }) => type === 'pre', (ctx) => {
+  const images = []
+
   ctx.message.entities.filter(({ type }) => type === 'pre')
-    .forEach((entity) => {
+    .forEach(async (entity) => {
       let lang
       let full
       let code = ctx.message.text.slice(entity.offset, entity.offset + entity.length)
@@ -185,7 +187,7 @@ server.bot.entity(({ type }) => type === 'pre', (ctx) => {
 
       const html = messages.getHtml(code, themeSlug, lang !== 'auto' && lang)
       const filename = getImageFileName(html, themeSlug)
-      const imagePath = getUserPath(ctx, filename)
+      let imagePath = getUserPath(ctx, filename)
 
       ChunkModel.store({
         userId: ctx.state && +ctx.state.user.id,
@@ -196,15 +198,24 @@ server.bot.entity(({ type }) => type === 'pre', (ctx) => {
       }, () => {})
 
       if (isExisted(imagePath)) {
-        return replyWithPhoto(ctx, imagePath)
+        images.push(imagePath)
+        return
       }
 
-      webshot(html, imagePath, webshotOptions, (err) => err
-        ? console.log(err)
-        : replyWithPhoto(ctx, imagePath))
+      imagePath = await getWebShot(html, imagePath, webshotOptions)
+      images.push(imagePath)
     })
+
+    if (images.length === 1) {
+      return replyWithPhoto(ctx, images[0])
+    }
+
+    return replyWithMediaGroup(ctx, images)
 })
 
+/**
+ * Handle remove action.
+ */
 server.bot.action(/^remove::(\d+)$/, async (ctx) => {
   ctx.answerCbQuery()
   if (Number(ctx.match[1]) === ctx.update.callback_query.from.id) {
