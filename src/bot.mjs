@@ -165,11 +165,10 @@ server.bot.action(/^\/apply\/(.+)$/, (ctx) => UserModel.applyTheme(
 /**
  * Catch code message
  */
-server.bot.entity(({ type }) => type === 'pre', (ctx) => {
-  const images = []
-
-  ctx.message.entities.filter(({ type }) => type === 'pre')
-    .forEach(async (entity) => {
+server.bot.entity(({ type }) => type === 'pre', async (ctx) => {
+  const images = await Promise.all(ctx.message.entities
+    .filter(({ type }) => type === 'pre')
+    .map(async (entity) => {
       let lang
       let full
       let code = ctx.message.text.slice(entity.offset, entity.offset + entity.length)
@@ -197,20 +196,23 @@ server.bot.entity(({ type }) => type === 'pre', (ctx) => {
         source: code,
       }, () => {})
 
-      if (isExisted(imagePath)) {
-        images.push(imagePath)
-        return
+      if (!isExisted(imagePath)) {
+        imagePath = await getWebShot(html, imagePath, webshotOptions)
+          .catch(console.log)
       }
 
-      imagePath = await getWebShot(html, imagePath, webshotOptions)
-      images.push(imagePath)
-    })
+      return imagePath
+    }))
 
-    if (images.length === 1) {
-      return replyWithPhoto(ctx, images[0])
-    }
+  if (images.length === 0) {
+    return
+  }
 
-    return replyWithMediaGroup(ctx, images)
+  if (images.length === 1) {
+    return replyWithPhoto(ctx, images[0])
+  }
+
+  return replyWithMediaGroup(ctx, images)
 })
 
 /**
