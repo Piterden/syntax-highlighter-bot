@@ -90,18 +90,23 @@ export const replyWithPhoto = (ctx, image) => {
   )
 }
 
-export const replyWithMediaGroup = (ctx, images) => {
+export const replyWithMediaGroup = async (ctx, images) => {
   ctx.replyWithChatAction('upload_photo')
-  return ctx.replyWithMediaGroup(
+  const messages = await ctx.replyWithMediaGroup(
     images.map((image) => ({
       type: 'photo',
       media: {
         url: getFileURL(image),
       },
-    })),
+    }))
+  )
+  const ids = messages.map(({ message_id }) => message_id).join('|')
+
+  ctx.replyWithMarkdown(
+    '`====================================================`',
     Markup.inlineKeyboard([[{
       text: `Remove (only ${ctx.from.first_name} can)`,
-      callback_data: `remove::${ctx.from.id}`,
+      callback_data: `remove::${ctx.from.id}::${ids}`,
     }]]).removeKeyboard().extra()
   )
 }
