@@ -10,7 +10,7 @@ This bot was written on top of the [Telegraf.js](https://github.com/telegraf/tel
 
 [Demo](https://t.me/cris_highlight_bot) (WIP version).
 
-The bot listens for the first entity type of `pre` in each text message. It means, it will render only one first code piece, wrapped in triple backticks (multiline code). Also you could force the language, writing its name on the first line, right after backticks. Just like on the GitHub.
+The bot listens for entities type of `pre` in any text message. It means, it will render all pieces of text, wrapped in triple backticks (multiline code). Also you could force the language, writing its name on the first line, right after backticks. Just like on the GitHub.
 
 Look at the example of a code should be handled by the bot:
 

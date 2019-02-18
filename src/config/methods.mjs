@@ -83,10 +83,13 @@ export const replyWithPhoto = (ctx, image) => {
     {
       url: getFileURL(image),
     },
-    Markup.inlineKeyboard([[{
-      text: `Remove (only ${ctx.from.first_name} can)`,
-      callback_data: `remove::${ctx.from.id}`,
-    }]]).removeKeyboard().extra()
+    {
+      ...Markup.inlineKeyboard([[{
+        text: `Remove (only ${ctx.from.first_name} can)`,
+        callback_data: `remove::${ctx.from.id}`,
+      }]]).removeKeyboard().extra(),
+      reply_to_message_id: ctx.message.message_id,
+    }
   )
 }
 
@@ -98,7 +101,10 @@ export const replyWithMediaGroup = async (ctx, images) => {
       media: {
         url: getFileURL(image),
       },
-    }))
+    })),
+    {
+      reply_to_message_id: ctx.message.message_id,
+    }
   )
   const ids = messages.map(({ message_id }) => message_id).join('|')
 
@@ -111,11 +117,13 @@ export const replyWithMediaGroup = async (ctx, images) => {
   )
 }
 
-export const getWebShot = (html, imagePath, webshotOptions) => new Promise((resolve, reject) => {
-  webshot(html, imagePath, webshotOptions, (err) => err
-    ? reject(err)
-    : resolve(imagePath))
-})
+export const getWebShot = (html, imagePath, webshotOptions) => new Promise(
+  (resolve, reject) => {
+    webshot(html, imagePath, webshotOptions, (err) => err
+      ? reject(err)
+      : resolve(imagePath))
+  }
+)
 
 export const replyWithDocument = (ctx, image) => {
   ctx.replyWithChatAction('upload_document')
@@ -123,7 +131,10 @@ export const replyWithDocument = (ctx, image) => {
     {
       url: getFileURL(image),
     },
-    Markup.removeKeyboard().extra()
+    {
+      ...Markup.removeKeyboard().extra(),
+      reply_to_message_id: ctx.message.message_id,
+    }
   )
 }
 
