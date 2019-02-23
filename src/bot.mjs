@@ -181,7 +181,7 @@ server.bot.entity(({ type }) => type === 'pre', async (ctx) => {
       }
       else {
         lang = 'auto'
-        code = code.replace(new RegExp('\\n', 'i'), '')
+        code = code.replace(new RegExp('^\\n', 'i'), '')
       }
 
       const html = messages.getHtml(code, themeSlug, lang !== 'auto' && lang)
