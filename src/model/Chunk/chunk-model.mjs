@@ -96,7 +96,7 @@ class ChunkModel extends Model {
     this.query()
       .where('filename', data.filename)
       .then((chunk) => {
-        if (!chunk) {
+        if (!chunk || !chunk.length) {
           this.query()
             .insert(data)
             .then(cb)
