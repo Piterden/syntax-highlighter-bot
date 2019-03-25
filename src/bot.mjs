@@ -256,7 +256,7 @@ server.bot.on(['new_chat_members'], async (ctx) => {
         .patchAndFetchById(Number(chat.id), { active: true })
         .catch(onError)
     }
-    esle {
+    else {
       const { id, title, type } = ctx.chat
 
       await ChatModel.query()
