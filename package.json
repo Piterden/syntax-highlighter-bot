@@ -13,6 +13,10 @@
     "watch": "node_modules/.bin/nodemon -e js,mjs,json -w src -V index.js"
   },
   "author": "Denis Efremov <efremov.a.denis@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Piterden/syntax-highlighter-bot.git"
+  },
   "license": "MIT",
   "dependencies": {
     "@pm2/io": "^3.1.1",
