@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import Knex from 'knex'
 import webshot from 'webshot'
 import Telegraf from 'telegraf'
@@ -52,6 +51,9 @@ server.bot.use((ctx, next) => ctx.state.user
   ? next(ctx)
   : UserModel.store(ctx, next))
 
+/**
+ * Start bot command
+ */
 const startCommand = async (ctx) => {
   ctx.reply('fix')
   if (isPrivateChat(ctx)) {
@@ -71,12 +73,12 @@ const startCommand = async (ctx) => {
   }, 10000)
 }
 
-/**
- * Start bot command
- */
 server.bot.command('/start', startCommand)
 server.bot.command('/start@cris_highlight_bot', startCommand)
 
+/**
+ * Show languages list
+ */
 const langsCommand = async (ctx) => {
   ctx.reply('fix')
   if (isPrivateChat(ctx)) {
@@ -90,12 +92,12 @@ const langsCommand = async (ctx) => {
   }, 10000)
 }
 
-/**
- * Show languages list
- */
 server.bot.command('/langs', langsCommand)
 server.bot.command('/langs@cris_highlight_bot', langsCommand)
 
+/**
+ * Show themes list
+ */
 const themeCommand = async (ctx) => {
   ctx.reply('fix')
   if (isPrivateChat(ctx)) {
@@ -112,9 +114,6 @@ const themeCommand = async (ctx) => {
   }, 10000)
 }
 
-/**
- * Show themes list
- */
 server.bot.command('/theme', themeCommand)
 server.bot.command('/theme@cris_highlight_bot', themeCommand)
 
@@ -122,6 +121,10 @@ server.bot.command('/theme@cris_highlight_bot', themeCommand)
  * Theme choose command
  */
 server.bot.hears(/^🎨 (.+)/, (ctx) => {
+  if (!isPrivateChat(ctx)) {
+    return
+  }
+
   const themeSlug = getThemeSlug(ctx.match[1])
   const themeName = getThemeName(themeSlug)
 
@@ -131,7 +134,9 @@ server.bot.hears(/^🎨 (.+)/, (ctx) => {
   const filePath = getPath(getImageFileName(body, themeSlug))
 
   return webshot(messages.getHtml(body, themeSlug), filePath, webshotOptions, (err) => {
-    if (err) return console.log(err)
+    if (err) {
+      return console.log(err)
+    }
 
     const button = Markup.callbackButton(
       `Apply ${themeName} theme`,
@@ -171,29 +176,31 @@ server.bot.entity(({ type }) => type === 'pre', async (ctx) => {
     .map(async (entity) => {
       let lang
       let full
-      let code = ctx.message.text.slice(entity.offset, entity.offset + entity.length)
-      const match = code.match(/^(\w+)\n/)
-      const themeSlug = ctx.state && ctx.state.user ? ctx.state.user.theme : 'github'
+      let source = ctx.message.text.slice(entity.offset, entity.offset + entity.length)
+      const match = source.match(/^(\w+)\n/)
+      const themeSlug = ctx.state && ctx.state.user
+        ? ctx.state.user.theme
+        : 'Atom One Dark'
 
       if (match && match[1] && langs.includes(match[1])) {
         [full, lang] = match
-        code = code.replace(new RegExp(full, 'i'), '')
+        source = source.replace(new RegExp(full, 'i'), '')
       }
       else {
         lang = 'auto'
-        code = code.replace(new RegExp('^\\n', 'i'), '')
+        source = source.replace(new RegExp('^\\n', 'i'), '')
       }
 
-      const html = messages.getHtml(code, themeSlug, lang !== 'auto' && lang)
+      const html = messages.getHtml(source, themeSlug, lang !== 'auto' && lang)
       const filename = getImageFileName(html, themeSlug)
       let imagePath = getUserPath(ctx, filename)
 
       ChunkModel.store({
-        userId: ctx.state && +ctx.state.user.id,
-        chatId: +ctx.chat.id,
+        userId: ctx.state && Number(ctx.state.user.id),
+        chatId: Number(ctx.chat.id),
         filename,
         lang,
-        source: code,
+        source,
       }, () => {})
 
       if (!isExisted(imagePath)) {
@@ -204,15 +211,11 @@ server.bot.entity(({ type }) => type === 'pre', async (ctx) => {
       return imagePath
     }))
 
-  if (images.length === 0) {
-    return
+  switch (images.length) {
+    case 0: return
+    case 1: return replyWithPhoto(ctx, images[0])
+    default: await replyWithMediaGroup(ctx, images)
   }
-
-  if (images.length === 1) {
-    return replyWithPhoto(ctx, images[0])
-  }
-
-  await replyWithMediaGroup(ctx, images)
 })
 
 /**
@@ -237,6 +240,41 @@ server.bot.action(/^remove::(\d+)(?:::([\d|]+))?$/, async (ctx) => {
     return
   }
   ctx.answerCbQuery('Sorry. Only author and admins are allowed to remove messages!')
+})
+
+/**
+ * Bot was added to a group
+ */
+server.bot.on(['new_chat_members'], async (ctx) => {
+  if (ctx.message.new_chat_member.username === ENV.BOT_USER) {
+    const chat = await ChatModel.query()
+      .findById(Number(ctx.chat.id))
+      .catch(onError)
+
+    if (chat) {
+      await ChatModel.query()
+        .patchAndFetchById(Number(chat.id), { active: true })
+        .catch(onError)
+    }
+    esle {
+      const { id, title, type } = ctx.chat
+
+      await ChatModel.query()
+        .insert({ id: Number(id), title, type, active: true })
+        .catch(onError)
+    }
+  }
+})
+
+/**
+ * Bot was removed from group
+ */
+server.bot.on(['left_chat_member'], async (ctx) => {
+  if (ctx.message.left_chat_member.username === ENV.BOT_USER) {
+    await ChatModel.query()
+      .patchAndFetchById(Number(ctx.chat.id), { active: false })
+      .catch(onError)
+  }
 })
 
 /**
@@ -276,42 +314,3 @@ server.bot.action(/^remove::(\d+)(?:::([\d|]+))?$/, async (ctx) => {
 //   })
 // })
 // ctx.telegram.answerInlineQuery(ctx.inlineQuery.id, result)
-
-/**
- * Bot was added to a group
- */
-// server.bot.on(['new_chat_members'], (ctx) => {
-//   if (ctx.message.new_chat_member.username !== ENV.BOT_USER) return
-
-//   const onSuccess = () => ctx.replyWithMarkdown(messages.welcomeGroup())
-
-//   ChatModel.query()
-//     .findById(+ctx.chat.id)
-//     .then((chat) => chat
-//       ? ChatModel.query()
-//         .patchAndFetchById(+chat.id, { active: true })
-//         .then(onSuccess)
-//         .catch(onError)
-//       : ChatModel.query()
-//         .insert({
-//           id: +ctx.chat.id,
-//           title: ctx.chat.title,
-//           type: ctx.chat.type,
-//           active: true,
-//         })
-//         .then(onSuccess)
-//         .catch(onError))
-//     .catch(onError)
-// })
-
-/**
- * Bot was removed from group
- */
-// server.bot.on(['left_chat_member'], (ctx) => {
-//   if (ctx.message.left_chat_member.username !== ENV.BOT_USER) return
-
-//   ChatModel.query()
-//     .patchAndFetchById(+ctx.chat.id, { active: false })
-//     .then()
-//     .catch(onError)
-// })
