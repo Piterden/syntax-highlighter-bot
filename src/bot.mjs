@@ -54,7 +54,7 @@ server.bot.use((ctx, next) => ctx.state.user
 /**
  * Start bot command
  */
-const startCommand = async (ctx) => {
+const startCommand = async(ctx) => {
   ctx.reply('fix')
   if (isPrivateChat(ctx)) {
     await ctx.replyWithMarkdown(
