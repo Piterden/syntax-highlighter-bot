@@ -32,17 +32,17 @@ const server = new Server(new Telegraf(ENV.BOT_TOKEN, {
 /**
  * Log middleware
  */
-server.bot.use((ctx, next) => {
-  const start = Date.now()
+// server.bot.use((ctx, next) => {
+//   const start = Date.now()
 
-  return next(ctx).then(() => {
-    console.log(`
-${JSON.stringify(ctx.update, null, '  ')}
-----------------------------------------
-Response time ${Date.now() - start}ms
-========================================`)
-  })
-})
+//   return next(ctx).then(() => {
+//     console.log(`
+// ${JSON.stringify(ctx.update, null, '  ')}
+// ----------------------------------------
+// Response time ${Date.now() - start}ms
+// ========================================`)
+//   })
+// })
 
 /**
  * User middleware
@@ -54,7 +54,7 @@ server.bot.use((ctx, next) => ctx.state.user
 /**
  * Start bot command
  */
-const startCommand = async(ctx) => {
+const startCommand = async (ctx) => {
   ctx.reply('fix')
   if (isPrivateChat(ctx)) {
     await ctx.replyWithMarkdown(
@@ -211,11 +211,13 @@ server.bot.entity(({ type }) => type === 'pre', async (ctx) => {
       return imagePath
     }))
 
-  switch (images.length) {
-    case 0: return
-    case 1: return replyWithPhoto(ctx, images[0])
-    default: await replyWithMediaGroup(ctx, images)
+  if (images.length === 0) {
+    return
   }
+  if (images.length === 1) {
+    return replyWithPhoto(ctx, images[0])
+  }
+  return replyWithMediaGroup(ctx, images)
 })
 
 /**

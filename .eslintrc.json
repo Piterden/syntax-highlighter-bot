@@ -1,5 +1,5 @@
 {
-  "extends": "@atomix/eslint-config",
+  "extends": "@atomix",
   "rules": {
     "no-console": "off",
     "class-methods-use-this": "off",
