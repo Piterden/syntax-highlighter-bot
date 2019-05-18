@@ -21,16 +21,16 @@
   "dependencies": {
     "@pm2/io": "^3.1.1",
     "dotenv": "^6.0.0",
-    "esm": "^3.2.20",
-    "express": "^4.16.3",
+    "esm": "^3.2.25",
+    "express": "^4.17.0",
     "highlight.js": "^9.15.6",
     "hoek": "^5.0.4",
     "image-size": "^0.6.3",
     "knex": "^0.15.2",
-    "objection": "^1.6.4",
-    "pg": "^7.9.0",
+    "objection": "^1.6.8",
+    "pg": "^7.11.0",
     "sshpk": "^1.16.1",
-    "telegraf": "^3.27.1",
+    "telegraf": "^3.29.0",
     "webshot": "^0.18.0"
   },
   "devDependencies": {
