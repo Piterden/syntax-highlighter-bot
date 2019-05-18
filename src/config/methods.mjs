@@ -60,7 +60,7 @@ export const getPhotoData = (file, idx = null) => ({
 
 export const isPrivateChat = ({ chat }) => chat.type === 'private'
 
-const escapeUser = (user) => Object.keys(user).reduce((acc, key) => {
+const escapeUser = (user = {}) => Object.keys(user).reduce((acc, key) => {
   acc[key] = escape(user[key])
   return acc
 }, {})
