@@ -1,16 +1,15 @@
 {
   "name": "syntaxhighlightbot",
   "version": "1.0.0",
-  "description": "",
+  "description": "The bot for creating an image with highlighted code from a message.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "migrate": "npm run migrate:up",
-    "migrate:up": "node_modules/.bin/knex migrate:latest",
-    "migrate:down": "node_modules/.bin/knex migrate:rollback",
-    "migrate:refresh": "node_modules/.bin/knex migrate:rollback && node_modules/.bin/knex migrate:latest",
-    "dev": "node_modules/.bin/nodemon -V index.js",
-    "watch": "node_modules/.bin/nodemon -e js,mjs,json -w src -V index.js"
+    "migrate:up": "knex migrate:latest",
+    "migrate:down": "knex migrate:rollback",
+    "migrate:refresh": "knex migrate:rollback && knex migrate:latest",
+    "dev": "nodemon -V index.js",
+    "lint": "eslint ."
   },
   "author": "Denis Efremov <efremov.a.denis@gmail.com>",
   "repository": {
@@ -19,7 +18,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@pm2/io": "^3.1.1",
     "dotenv": "^6.0.0",
     "esm": "^3.2.25",
     "express": "^4.17.0",
@@ -36,6 +34,7 @@
   "devDependencies": {
     "@atomix/eslint-config": "^7.0.0-next.1",
     "babel-eslint": "^8.2.6",
-    "eslint": "^4.19.1"
+    "eslint": "^4.19.1",
+    "nodemon": "^1.19.1"
   }
 }

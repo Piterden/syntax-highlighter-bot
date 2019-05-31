@@ -1,8 +1,6 @@
 root: true
 parser: babel-eslint
-extends:
-  - '@atomix'
-  - standard
+extends: '@atomix'
 env:
   es6: true
   node: true
