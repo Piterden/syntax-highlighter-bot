@@ -23,7 +23,7 @@
     "express": "^4.17.0",
     "highlight.js": "^9.15.6",
     "hoek": "^5.0.4",
-    "image-size": "^0.6.3",
+    "image-size": "^0.7.4",
     "knex": "^0.17.1",
     "objection": "^1.6.8",
     "pg": "^7.11.0",
