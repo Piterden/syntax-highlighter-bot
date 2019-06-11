@@ -44,6 +44,13 @@ const server = new Server(new Telegraf(ENV.BOT_TOKEN, {
 //   })
 // })
 
+const trimLines = (code) => {
+  const starts = code.replace(/\t/g, '  ').match(/\n +/g)
+  const trimLength = Math.min(...starts.map((start) => start.match(/ /g).length))
+
+  return code.replace(new RegExp(`(?<=\\n) {${trimLength}}`, 'g'), '')
+}
+
 /**
  * User middleware
  */
@@ -191,7 +198,7 @@ server.bot.entity(({ type }) => type === 'pre', async (ctx) => {
         source = source.replace(new RegExp('^\\n', 'i'), '')
       }
 
-      const html = messages.getHtml(source, themeSlug, lang !== 'auto' && lang)
+      const html = messages.getHtml(trimLines(source), themeSlug, lang !== 'auto' && lang)
       const filename = getImageFileName(html, themeSlug)
       let imagePath = getUserPath(ctx, filename)
 
