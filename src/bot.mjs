@@ -198,7 +198,11 @@ server.bot.entity(({ type }) => type === 'pre', async (ctx) => {
         source = source.replace(new RegExp('^\\n', 'i'), '')
       }
 
-      const html = messages.getHtml(trimLines(source), themeSlug, lang !== 'auto' && lang)
+      const html = messages.getHtml(
+        trimLines(source.trim()),
+        themeSlug,
+        lang !== 'auto' && lang
+      )
       const filename = getImageFileName(html, themeSlug)
       let imagePath = getUserPath(ctx, filename)
 
