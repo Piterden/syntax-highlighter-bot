@@ -64,7 +64,7 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 
 ## Authors
 
-* **Cristian Ospina** - *Initial version of the bot* - [CristianOspina](https://github.com/CristianOspina)
+* **Cristian Ospina** - *Bot's [initial version](https://github.com/Piterden/syntax-highlighter-bot/tree/old-double-bot)* - [CristianOspina](https://github.com/CristianOspina)
 * **Denis Efremov** - *Rewrite to the Node.js* - [Piterden](https://github.com/Piterden)
 
 ## License
