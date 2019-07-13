@@ -1,5 +1,7 @@
 # Syntax Highlighter Bot
 
+![Travis (.org)](https://img.shields.io/travis/Piterden/syntax-highlighter-bot.svg?style=for-the-badge) ![GitHub search hit counter](https://img.shields.io/github/search/Piterden/syntax-highlighter-bot/highlight.svg?style=for-the-badge) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Piterden/syntax-highlighter-bot.svg?style=for-the-badge)
+
 The bot for creating an image with highlighted code from a message.
 
 ## Overview
