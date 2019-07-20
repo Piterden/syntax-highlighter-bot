@@ -1,5 +1,7 @@
 # Syntax Highlighter Bot
 
+![Travis (.org)](https://img.shields.io/travis/Piterden/syntax-highlighter-bot.svg?style=for-the-badge) ![GitHub search hit counter](https://img.shields.io/github/search/Piterden/syntax-highlighter-bot/highlight.svg?style=for-the-badge) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Piterden/syntax-highlighter-bot.svg?style=for-the-badge)
+
 The bot for creating an image with highlighted code from a message.
 
 ## Overview
@@ -64,7 +66,7 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 
 ## Authors
 
-* **Cristian Ospina** - *Initial version of the bot* - [CristianOspina](https://github.com/CristianOspina)
+* **Cristian Ospina** - *Bot's [initial version](https://github.com/Piterden/syntax-highlighter-bot/tree/old-double-bot)* - [CristianOspina](https://github.com/CristianOspina)
 * **Denis Efremov** - *Rewrite to the Node.js* - [Piterden](https://github.com/Piterden)
 
 ## License
