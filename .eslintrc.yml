@@ -29,6 +29,12 @@ rules:
   class-methods-use-this: off
   function-paren-newline: off
   import/no-default-export: off
+  unicorn/prevent-abbreviations:
+    - error
+    -
+      whitelist:
+        ctx: true
+        err: true
   curly:
     - error
   comma-dangle:

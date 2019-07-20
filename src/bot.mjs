@@ -8,8 +8,8 @@ import { webshotOptions, ENV } from './config/config'
 import { messages, themes, langs } from './config/messages'
 import {
   getPath, getUserPath, getThemeSlug, getThemeName, getImageFileName,
-  isExisted, getFileURL, getPhotoData, isPrivateChat, chatUser, themesKeyboard,
-  replyWithPhoto, replyWithMediaGroup, onError, clearFolder, getWebShot,
+  isExisted, getFileURL, isPrivateChat, chatUser, themesKeyboard,
+  replyWithPhoto, replyWithMediaGroup, onError, getWebShot,
 } from './config/methods'
 
 import Server from './server'
@@ -17,7 +17,6 @@ import Server from './server'
 import UserModel from './model/User/user-model'
 import ChatModel from './model/Chat/chat-model'
 import ChunkModel from './model/Chunk/chunk-model'
-
 
 const knex = Knex(dbConfig[ENV.NODE_ENV])
 
@@ -44,12 +43,12 @@ const server = new Server(new Telegraf(ENV.BOT_TOKEN, {
 //   })
 // })
 
-const trimLines = (code) => {
-  const starts = code.replace(/\t/g, '  ').match(/\n +/g)
-  const trimLength = Math.min(...starts.map((start) => start.match(/ /g).length))
+// const trimLines = (code) => {
+//   const starts = code.replace(/\t/g, '  ').match(/\n +/g)
+//   const trimLength = Math.min(...starts.map((start) => start.match(/ /g).length))
 
-  return code.replace(new RegExp(`(?<=\\n) {${trimLength}}`, 'g'), '')
-}
+//   return code.replace(new RegExp(`(?<=\\n) {${trimLength}}`, 'g'), '')
+// }
 
 /**
  * User middleware
@@ -135,12 +134,14 @@ server.bot.hears(/^🎨 (.+)/, (ctx) => {
   const themeSlug = getThemeSlug(ctx.match[1])
   const themeName = getThemeName(themeSlug)
 
-  if (!themes.includes(themeSlug)) return false
+  if (!themes.includes(themeSlug)) {
+    return
+  }
 
   const body = messages.demoCode(themeName)
   const filePath = getPath(getImageFileName(body, themeSlug))
 
-  return webshot(messages.getHtml(body, themeSlug), filePath, webshotOptions, (err) => {
+  webshot(messages.getHtml(body, themeSlug), filePath, webshotOptions, (err) => {
     if (err) {
       return console.log(err)
     }
@@ -189,17 +190,19 @@ server.bot.entity(({ type }) => type === 'pre', async (ctx) => {
         ? ctx.state.user.theme
         : 'Atom One Dark'
 
-      if (match && match[1] && langs.includes(match[1])) {
+      if (match && match[1] && (langs.includes(match[1]) || match[1] === 'js')) {
         [full, lang] = match
+        if (lang === 'js') {
+          lang = 'javascript'
+        }
         source = source.replace(new RegExp(full, 'i'), '')
-      }
-      else {
+      } else {
         lang = 'auto'
         source = source.replace(new RegExp('^\\n', 'i'), '')
       }
 
       const html = messages.getHtml(
-        trimLines(source.trim()),
+        /* trimLines( */source.trim()/* ) */,
         themeSlug,
         lang !== 'auto' && lang
       )
@@ -226,9 +229,10 @@ server.bot.entity(({ type }) => type === 'pre', async (ctx) => {
     return
   }
   if (images.length === 1) {
-    return replyWithPhoto(ctx, images[0])
+    replyWithPhoto(ctx, images[0])
+    return
   }
-  return replyWithMediaGroup(ctx, images)
+  replyWithMediaGroup(ctx, images)
 })
 
 /**
@@ -268,8 +272,7 @@ server.bot.on(['new_chat_members'], async (ctx) => {
       await ChatModel.query()
         .patchAndFetchById(Number(chat.id), { active: true })
         .catch(onError)
-    }
-    else {
+    } else {
       const { id, title, type } = ctx.chat
 
       await ChatModel.query()
