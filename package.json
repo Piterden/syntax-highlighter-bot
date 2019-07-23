@@ -22,16 +22,17 @@
     "@pm2/io": "^3.1.1",
     "dotenv": "^6.0.0",
     "esm": "^3.2.25",
-    "express": "^4.17.0",
-    "highlight.js": "^9.15.6",
+    "express": "^4.17.1",
+    "highlight.js": "^9.15.8",
     "hoek": "^5.0.4",
     "image-size": "^0.6.3",
     "knex": "^0.15.2",
-    "objection": "^1.6.8",
+    "objection": "^1.6.9",
     "pg": "^7.11.0",
     "sshpk": "^1.16.1",
-    "telegraf": "^3.29.0",
-    "webshot": "^0.18.0"
+    "telegraf": "^3.30.1",
+    "webshot": "^0.18.0",
+    "yaml": "^1.6.0"
   },
   "devDependencies": {
     "@atomix/eslint-config": "^7.1.0",

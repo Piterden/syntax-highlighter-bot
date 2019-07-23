@@ -4,7 +4,7 @@ import Telegraf from 'telegraf'
 import Markup from 'telegraf/markup'
 
 import dbConfig from '../knexfile'
-import { webshotOptions, ENV } from './config/config'
+import { webshotOptions, ENV, languages } from './config/config'
 import { messages, themes, langs } from './config/messages'
 import {
   getPath, getUserPath, getThemeSlug, getThemeName, getImageFileName,
@@ -27,6 +27,16 @@ ChunkModel.knex(knex)
 const server = new Server(new Telegraf(ENV.BOT_TOKEN, {
   telegram: { webhookReply: true },
 }))
+
+const langsConfig = Object.keys(languages).reduce((result, key) => {
+  const { ace_mode: lang, aliases = [], extensions = [] } = languages[key];
+
+  [...aliases, ...extensions].forEach((name) => {
+    result[name] = lang
+  })
+
+  return result
+}, {})
 
 /**
  * Log middleware
@@ -192,8 +202,8 @@ server.bot.entity(({ type }) => type === 'pre', async (ctx) => {
 
       if (match && match[1] && (langs.includes(match[1]) || match[1] === 'js')) {
         [full, lang] = match
-        if (lang === 'js') {
-          lang = 'javascript'
+        if (langsConfig[lang]) {
+          lang = langsConfig[lang]
         }
         source = source.replace(new RegExp(full, 'i'), '')
       } else {
