@@ -3,7 +3,6 @@ import UserModel from '../User/user-model'
 import ChatModel from '../Chat/chat-model'
 import { onError } from '../../config/methods'
 
-
 const { Model, snakeCaseMappers } = Objection
 
 class ChunkModel extends Model {
@@ -13,7 +12,7 @@ class ChunkModel extends Model {
    * @static
    * @returns {string}
    */
-  static get tableName() {
+  static get tableName () {
     return 'chunks'
   }
 
@@ -22,7 +21,7 @@ class ChunkModel extends Model {
    *
    * @static
    */
-  static get columnNameMappers() {
+  static get columnNameMappers () {
     return snakeCaseMappers()
   }
 
@@ -32,7 +31,7 @@ class ChunkModel extends Model {
    * @static
    * @returns {EagerAlgorithm}
    */
-  static get defaultEagerAlgorithm() {
+  static get defaultEagerAlgorithm () {
     return Model.JoinEagerAlgorithm
   }
 
@@ -42,7 +41,7 @@ class ChunkModel extends Model {
    * @static
    * @returns {Object}
    */
-  static get jsonSchema() {
+  static get jsonSchema () {
     return {
       type: 'object',
       required: ['filename', 'userId', 'chatId'],
@@ -63,7 +62,7 @@ class ChunkModel extends Model {
    * @static
    * @returns {Object}
    */
-  static get relationMappings() {
+  static get relationMappings () {
     return {
       user: {
         relation: Model.BelongsToOneRelation,
@@ -92,14 +91,14 @@ class ChunkModel extends Model {
    * @param {{userId,chatId,filename,lang,source}} data The chunk data
    * @param {Function} cb The callback function
    */
-  static store(data, cb) {
+  static store (data, callback) {
     this.query()
       .where('filename', data.filename)
       .then((chunk) => {
-        if (!chunk || !chunk.length) {
+        if (!chunk || chunk.length === 0) {
           this.query()
             .insert(data)
-            .then(cb)
+            .then(callback)
             .catch(onError)
         }
       })
@@ -109,7 +108,7 @@ class ChunkModel extends Model {
   /**
    * Fires before insert in the DB
    */
-  $beforeInsert() {
+  $beforeInsert () {
     this.createdAt = new Date()
   }
 }

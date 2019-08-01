@@ -6,14 +6,12 @@ extends:
 env:
   es6: true
   node: true
-  browser: true
 parserOptions:
   sourceType: module
   ecmaVersion: 2018
   ecmaFeatures:
     globalReturn: false
     modules: true
-    experimentalObjectRestSpread: true
 globals:
   BigInt: true
 rules:

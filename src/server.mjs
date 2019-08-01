@@ -6,7 +6,7 @@ import { tlsOptions, url, ENV } from './config/config'
 const { WEBHOOK_DOMAIN, WEBHOOK_PATH, WEBHOOK_PORT, IMAGES_DIR } = ENV
 
 export default class Server {
-  constructor(bot) {
+  constructor (bot) {
     const server = express()
 
     server.use(bot.webhookCallback(`/${WEBHOOK_PATH}`))

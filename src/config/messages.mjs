@@ -5,7 +5,6 @@ import highlight from 'highlight.js'
 import { ENV } from './config'
 import { getThemeSlug } from './methods'
 
-
 const { BOT_USER } = ENV
 const cols = 2
 const maxWidth = 16

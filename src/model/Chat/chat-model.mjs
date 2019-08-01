@@ -1,22 +1,21 @@
 import Objection from 'objection'
 
-
 const { Model, snakeCaseMappers } = Objection
 
 class ChatModel extends Model {
-  static get tableName() {
+  static get tableName () {
     return 'chats'
   }
 
-  static get columnNameMappers() {
+  static get columnNameMappers () {
     return snakeCaseMappers()
   }
 
-  static get defaultEagerAlgorithm() {
+  static get defaultEagerAlgorithm () {
     return Model.JoinEagerAlgorithm
   }
 
-  static get jsonSchema() {
+  static get jsonSchema () {
     return {
       type: 'object',
       required: ['id', 'title', 'type'],
@@ -30,11 +29,11 @@ class ChatModel extends Model {
     }
   }
 
-  $beforeInsert() {
+  $beforeInsert () {
     this.createdAt = new Date()
   }
 
-  $beforeUpdate() {
+  $beforeUpdate () {
     this.updatedAt = new Date()
   }
 }

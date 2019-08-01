@@ -39,6 +39,12 @@
     "@atomix/eslint-config": "^7.1.0",
     "babel-eslint": "^8.2.6",
     "eslint": "^5.16.0",
+    "eslint-config-node": "^4.0.0",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-node": "^9.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^3.1.0",
+    "eslint-plugin-unicorn": "^8.0.2",
     "prettier": "^1.18.2"
   }
 }

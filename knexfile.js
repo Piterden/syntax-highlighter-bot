@@ -1,6 +1,5 @@
 require('dotenv').load()
 
-
 const {
   DB_DRIVER, DB_DATABASE, DB_USER, DB_PASSWORD, DB_CHARSET,
 } = process.env

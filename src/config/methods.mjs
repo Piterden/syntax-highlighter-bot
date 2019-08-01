@@ -7,7 +7,6 @@ import Markup from 'telegraf/markup'
 
 import { url, ENV } from './config'
 
-
 const { IMAGES_DIR } = ENV
 const cols = 2
 
@@ -106,7 +105,7 @@ export const replyWithMediaGroup = async (ctx, images) => {
       reply_to_message_id: ctx.message.message_id,
     }
   )
-  const ids = messages.map(({ message_id }) => message_id).join('|')
+  const ids = messages.map(({ message_id: messageId }) => messageId).join('|')
 
   ctx.replyWithMarkdown(
     '`====================================================`',
@@ -152,7 +151,14 @@ export const onError = (err) => console.log(err)
 export const clearFolder = ({ id }) => {
   const filePath = path.resolve(`${IMAGES_DIR}/${id}`)
 
-  fs.readdir(filePath, (err, files) => files && files.length && files.forEach((file) => {
-    fs.unlinkSync(`${filePath}/${file}`)
-  }))
+  fs.readdir(filePath, (err, files) => {
+    if (err) {
+      throw new Error(err)
+    }
+    if (files && files.length > 0) {
+      files.forEach((file) => {
+        fs.unlinkSync(`${filePath}/${file}`)
+      })
+    }
+  })
 }

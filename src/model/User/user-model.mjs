@@ -1,8 +1,5 @@
 import Objection from 'objection'
-import Markup from 'telegraf/markup'
-import { messages } from '../../config/messages'
-import { chatUser, makeUserFolder, onError, getThemeName } from '../../config/methods'
-
+import { chatUser, makeUserFolder, onError } from '../../config/methods'
 
 const { Model, snakeCaseMappers } = Objection
 
@@ -18,7 +15,7 @@ class UserModel extends Model {
    * @static
    * @return {string}
    */
-  static get tableName() {
+  static get tableName () {
     return 'users'
   }
 
@@ -27,7 +24,7 @@ class UserModel extends Model {
    *
    * @static
    */
-  static get columnNameMappers() {
+  static get columnNameMappers () {
     return snakeCaseMappers()
   }
 
@@ -37,7 +34,7 @@ class UserModel extends Model {
    * @static
    * @return {EagerAlgorithm}
    */
-  static get defaultEagerAlgorithm() {
+  static get defaultEagerAlgorithm () {
     return Model.JoinEagerAlgorithm
   }
 
@@ -47,7 +44,7 @@ class UserModel extends Model {
    * @static
    * @return {Object}
    */
-  static get jsonSchema() {
+  static get jsonSchema () {
     return {
       type: 'object',
       required: ['id'],
@@ -71,7 +68,7 @@ class UserModel extends Model {
    * @param ctx
    * @param next
    */
-  static store(ctx, next) {
+  static store (ctx, next) {
     const chatUserData = chatUser(ctx)
 
     this.query()
@@ -98,18 +95,18 @@ class UserModel extends Model {
       .catch(onError)
   }
 
-  static applyTheme({ id }, theme, cb) {
+  static applyTheme ({ id }, theme, callback) {
     this.query()
       .patchAndFetchById(+id, { theme })
-      .then(cb)
+      .then(callback)
       .catch(onError)
   }
 
-  $beforeInsert() {
+  $beforeInsert () {
     this.createdAt = new Date()
   }
 
-  $beforeUpdate() {
+  $beforeUpdate () {
     this.updatedAt = new Date()
   }
 }
