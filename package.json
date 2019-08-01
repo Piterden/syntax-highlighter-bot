@@ -6,11 +6,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "migrate": "npm run migrate:up",
-    "migrate:up": "node_modules/.bin/knex migrate:latest",
-    "migrate:down": "node_modules/.bin/knex migrate:rollback",
-    "migrate:refresh": "node_modules/.bin/knex migrate:rollback && node_modules/.bin/knex migrate:latest",
-    "dev": "node_modules/.bin/nodemon -V index.js",
-    "watch": "node_modules/.bin/nodemon -e js,mjs,json -w src -V index.js"
+    "migrate:up": "knex migrate:latest",
+    "migrate:down": "knex migrate:rollback",
+    "migrate:refresh": "knex migrate:rollback && knex migrate:latest",
+    "dev": "nodemon -V index.js",
+    "watch": "nodemon -e js,mjs,json -w src -V index.js"
   },
   "author": "Denis Efremov <efremov.a.denis@gmail.com>",
   "repository": {
