@@ -9,6 +9,7 @@
     "migrate:up": "knex migrate:latest",
     "migrate:down": "knex migrate:rollback",
     "migrate:refresh": "knex migrate:rollback && knex migrate:latest",
+    "lint": "eslint --ext .js,.mjs .",
     "dev": "nodemon -V index.js",
     "watch": "nodemon -e js,mjs,json -w src -V index.js"
   },
