@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import highlight from 'highlight.js'
+import highlight from 'highlight.js' // eslint-disable-line import/extensions
 
 import { ENV } from './config'
 import { getThemeSlug } from './methods'

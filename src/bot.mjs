@@ -16,13 +16,13 @@ import Server from './server'
 
 import UserModel from './model/User/user-model'
 import ChatModel from './model/Chat/chat-model'
-import ChunkModel from './model/Chunk/chunk-model'
+// import ChunkModel from './model/Chunk/chunk-model'
 
 const knex = Knex(dbConfig[ENV.NODE_ENV])
 
 ChatModel.knex(knex)
 UserModel.knex(knex)
-ChunkModel.knex(knex)
+// ChunkModel.knex(knex)
 
 const server = new Server(new Telegraf(ENV.BOT_TOKEN, {
   telegram: { webhookReply: true },
@@ -219,13 +219,13 @@ server.bot.entity(({ type }) => type === 'pre', async (ctx) => {
       const filename = getImageFileName(html, themeSlug)
       let imagePath = getUserPath(ctx, filename)
 
-      ChunkModel.store({
-        userId: ctx.state && Number(ctx.state.user.id),
-        chatId: Number(ctx.chat.id),
-        filename,
-        lang,
-        source,
-      }, () => {})
+      // await ChunkModel.store({
+      //   userId: ctx.state && Number(ctx.state.user.id),
+      //   chatId: Number(ctx.chat.id),
+      //   filename,
+      //   lang,
+      //   source,
+      // })
 
       if (!isExisted(imagePath)) {
         imagePath = await getWebShot(html, imagePath, webshotOptions)

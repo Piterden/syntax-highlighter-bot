@@ -1,7 +1,6 @@
 import Objection from 'objection'
 import UserModel from '../User/user-model'
 import ChatModel from '../Chat/chat-model'
-import { onError } from '../../config/methods'
 
 const { Model, snakeCaseMappers } = Objection
 
@@ -91,18 +90,17 @@ class ChunkModel extends Model {
    * @param {{userId,chatId,filename,lang,source}} data The chunk data
    * @param {Function} cb The callback function
    */
-  static store (data, callback) {
-    this.query()
-      .where('filename', data.filename)
-      .then((chunk) => {
-        if (!chunk || chunk.length === 0) {
-          this.query()
-            .insert(data)
-            .then(callback)
-            .catch(onError)
-        }
-      })
-      .catch(onError)
+  static store (data) {
+    return new Promise((resolve, reject) => {
+      this.query()
+        .where('filename', data.filename)
+        .then((chunk) => {
+          if (!chunk || chunk.length === 0) {
+            this.query().insert(data).then(resolve).catch(reject)
+          }
+        })
+        .catch(reject)
+    })
   }
 
   /**

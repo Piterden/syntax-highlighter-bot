@@ -16,8 +16,8 @@ The bot listens for entities type of `pre` in any text message. It means, it wil
 
 Look at the example of a code should be handled by the bot:
 
-```markdown
-```javascript
+```
+\`\`\`js
 /**
  * Show themes list
  */
@@ -27,7 +27,7 @@ bot.command('theme', (ctx) => isPrivateChat(ctx)
     Markup.keyboard(themesKeyboard(themes)).oneTime().resize().extra()
   )
   : ctx.reply(messages.themeGroup)
-)```
+)\`\`\`
 ```
 
 ### Commands
