@@ -27,7 +27,7 @@
     "highlight.js": "^9.16.2",
     "hoek": "^5.0.4",
     "image-size": "^0.6.3",
-    "knex": "^0.15.2",
+    "knex": "^0.19.5",
     "language-classifier": "0.0.1",
     "mysql": "^2.17.1",
     "objection": "^1.6.11",
