@@ -1,6 +1,6 @@
 {
   "name": "syntaxhighlightbot",
-  "version": "1.0.6",
+  "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -52,7 +52,7 @@
   },
   "husky": {
     "hooks": {
-      "post-commit": "npm version patch",
+      "post-commit": "npm version patch &",
       "pre-push": "npm run lint"
     }
   }
