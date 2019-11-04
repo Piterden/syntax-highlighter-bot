@@ -1,6 +1,6 @@
 {
   "name": "syntaxhighlightbot",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -9,6 +9,7 @@
     "migrate:up": "knex migrate:latest",
     "migrate:down": "knex migrate:rollback",
     "migrate:refresh": "knex migrate:rollback && knex migrate:latest",
+    "postcommit": "npm version patch",
     "lint": "eslint --ext .js,.mjs .",
     "dev": "nodemon -V index.js",
     "watch": "nodemon -e js,mjs,json -w src -V index.js"
@@ -52,6 +53,7 @@
   },
   "husky": {
     "hooks": {
+      "post-commit": "npm run postcommit",
       "pre-push": "npm run lint"
     }
   }
