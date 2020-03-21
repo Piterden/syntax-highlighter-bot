@@ -3,12 +3,13 @@ import path from 'path'
 import crypto from 'crypto'
 import webshot from 'webshot'
 import sizeOf from 'image-size'
-import Markup from 'telegraf/markup'
+import Telegraf from 'telegraf'
 
-import { url, ENV } from './config'
+import { url, ENV } from './config.mjs'
 
-const { IMAGES_DIR } = ENV
 const cols = 2
+const { IMAGES_DIR } = ENV
+const { Markup } = Telegraf
 
 export const md5 = (string) => crypto
   .createHash('md5')

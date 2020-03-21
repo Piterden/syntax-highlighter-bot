@@ -11,7 +11,8 @@
     "migrate:refresh": "knex migrate:rollback && knex migrate:latest",
     "lint": "eslint --ext .js,.mjs .",
     "dev": "nodemon -V index.js",
-    "watch": "nodemon -e js,mjs,json -w src -V index.js"
+    "watch": "nodemon -e js,mjs,json -w src -V index.js",
+    "preinstall": "npx npm-force-resolutions"
   },
   "author": "Denis Efremov <efremov.a.denis@gmail.com>",
   "repository": {
@@ -29,11 +30,9 @@
     "image-size": "^0.6.3",
     "knex": "^0.20.1",
     "language-classifier": "0.0.1",
-    "mysql": "^2.18.1",
     "mysql2": "^2.1.0",
     "nodemon": "^2.0.2",
     "objection": "^1.6.11",
-    "pg": "^7.14.0",
     "prismjs": "^1.17.1",
     "sshpk": "^1.16.1",
     "telegraf": "^3.34.1",
@@ -60,5 +59,9 @@
     "hooks": {
       "pre-push": "npm run lint"
     }
+  },
+  "type": "module",
+  "resolutions": {
+    "graceful-fs": "4.2.3"
   }
 }

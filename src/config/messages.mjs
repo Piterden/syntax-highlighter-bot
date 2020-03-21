@@ -2,12 +2,17 @@ import fs from 'fs'
 import path from 'path'
 import highlight from 'highlight.js' // eslint-disable-line import/extensions
 
-import { ENV } from './config'
-import { getThemeSlug } from './methods'
+import { ENV } from './config.mjs'
+import { getThemeSlug } from './methods.mjs'
 
 const { BOT_USER } = ENV
 const cols = 2
 const maxWidth = 16
+
+const getThemeName = (slug) => slug
+  .split('-')
+  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+  .join(' ')
 
 const getThemeCssFilePath = (theme) => path
   .resolve(`node_modules/highlight.js/styles/${getThemeSlug(theme)}.css`)
@@ -103,4 +108,14 @@ _Any questions or bugs you can write to _@piterden_ (ru,en,code) or _@CristianOs
   }
 }
 export syntaxHighlightBot;`,
+
+  themesKeyboard: (themesArray, cache = '') => themesArray
+    .map((theme, idx) => {
+      if ((idx + 1) % cols) {
+        cache = `🎨 ${getThemeName(theme)}` // eslint-disable-line no-param-reassign
+        return idx - 1 < themesArray.length ? false : cache
+      }
+      return [cache, `🎨 ${getThemeName(theme)}`]
+    })
+    .filter(Boolean),
 }

@@ -1,4 +1,6 @@
-require('dotenv').load()
+import dotenv from 'dotenv'
+
+dotenv.load()
 
 const {
   DB_DRIVER, DB_DATABASE, DB_USER, DB_PASSWORD, DB_CHARSET,
@@ -21,7 +23,7 @@ const config = {
   },
 }
 
-module.exports = {
+export default {
   staging: config,
   production: config,
   development: config,
