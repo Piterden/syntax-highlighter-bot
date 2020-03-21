@@ -1,19 +1,19 @@
-
-exports.up = function (knex) {
-  return knex.schema.createTableIfNotExists('users', function (table) {
-    table.bigInteger('id').unique()
-    table.string('first_name', 255)
-    table.string('last_name', 255)
-    table.string('username', 255).unique()
+exports.up = async (knex, Promise) => (await knex.schema.hasTable('users'))
+  ? null
+  : knex.schema.createTable('users', (table) => {
+    table.integer('id').unsigned()
     table.boolean('is_bot')
-    table.string('language_code', 2)
+    table.string('first_name')
+    table.string('last_name')
+    table.string('username')
+    table.string('language_code')
     table.string('theme', 40)
-    table.timestamps(['created_at', 'updated_at'])
+    table.timestamp('created_at').defaultTo(knex.fn.now())
+    table.timestamp('updated_at')
 
     table.primary('id')
   })
-}
 
-exports.down = function (knex) {
-  return knex.schema.dropTableIfExists('users')
-}
+exports.down = async (knex, Promise) => (await knex.schema.hasTable('users'))
+  ? knex.schema.dropTable('users')
+  : null

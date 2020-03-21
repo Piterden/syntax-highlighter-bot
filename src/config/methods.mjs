@@ -34,7 +34,7 @@ export const getImageFileName = (body, theme) => `${md5(body)}_${getThemeSlug(th
 
 export const isExisted = (file) => fs.existsSync(file)
 
-export const filenameFix = (file) => {
+export const filenameFix = (file = '') => {
   const match = file.match(new RegExp(`(${IMAGES_DIR}/.+)$`))
 
   return match ? match[1] : file
@@ -59,12 +59,12 @@ export const getPhotoData = (file, idx = null) => ({
 
 export const isPrivateChat = ({ chat }) => chat.type === 'private'
 
-const escapeUser = (user = {}) => Object.keys(user).reduce((acc, key) => {
-  acc[key] = escape(user[key])
-  return acc
-}, {})
+// const escapeUser = (user = {}) => Object.keys(user).reduce((acc, key) => {
+//   acc[key] = escape(user[key])
+//   return acc
+// }, {})
 
-export const chatUser = (ctx) => escapeUser(ctx.state.user || ctx.from)
+export const chatUser = (ctx) => ctx.state.user || ctx.from
 
 export const themesKeyboard = (themes, cache = '') => themes
   .map((theme, idx) => {

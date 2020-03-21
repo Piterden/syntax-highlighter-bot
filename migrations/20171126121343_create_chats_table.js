@@ -1,6 +1,6 @@
-
-exports.up = function (knex) {
-  return knex.schema.createTableIfNotExists('chats', function (table) {
+exports.up = async (knex, Promise) => (await knex.schema.hasTable('chats'))
+  ? null
+  : knex.schema.createTable('chats', (table) => {
     table.bigInteger('id').unique()
     table.string('title', 255).unique()
     table.string('type', 40)
@@ -9,8 +9,7 @@ exports.up = function (knex) {
 
     table.primary('id')
   })
-}
 
-exports.down = function (knex) {
-  return knex.schema.dropTableIfExists('chats')
-}
+exports.down = async (knex, Promise) => (await knex.schema.hasTable('chats'))
+  ? knex.schema.dropTable('chats')
+  : null

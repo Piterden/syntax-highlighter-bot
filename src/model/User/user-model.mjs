@@ -4,7 +4,18 @@ import { chatUser, makeUserFolder, onError } from '../../config/methods'
 const { Model, snakeCaseMappers } = Objection
 
 const unescapeUser = (user) => Object.keys(user).reduce((acc, key) => {
-  acc[key] = key !== 'id' ? unescape(user[key]) : Number(user[key])
+  let value
+
+  switch (key) {
+    case 'id': value = Number(user[key])
+      break
+    case 'is_bot':
+      console.log(user[key])
+      value = Boolean(user[key])
+      break
+    default: value = user[key]
+  }
+  acc[key] = value
   return acc
 }, {})
 
@@ -75,17 +86,17 @@ class UserModel extends Model {
       .findById(+chatUserData.id)
       .then((user) => {
         if (user) {
-          ctx.state.user = unescapeUser(user)
+          ctx.state.user = user
           return next(ctx)
         }
-        const { id, ...data } = chatUserData
+        const { id, is_bot: isBot, ...data } = chatUserData
 
         return (
           this.query()
-            .insert({ id: +id, ...data, theme: 'github' })
+            .insert({ id: +id, is_bot: isBot ? 1 : 0, ...data, theme: 'github' })
             // eslint-disable-next-line no-shadow
             .then((user) => {
-              ctx.state.user = unescapeUser(user)
+              ctx.state.user = user
               makeUserFolder(user)
               next(ctx)
             })
