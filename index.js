@@ -1,9 +1,14 @@
+import fs from 'fs'
+import path from 'path'
 import Knex from 'knex'
 import https from 'https'
 import dotenv from 'dotenv'
+import colors from 'colors'
+import prompt from 'prompt'
 import express from 'express'
 import { inspect } from 'util'
 import Telegraf from 'telegraf'
+import puppeteer from 'puppeteer'
 
 import dbConfig from './knexfile.js'
 import { webshotOptions, languages, tlsOptions } from './src/config/config.mjs'
@@ -38,6 +43,30 @@ const debug = (data) => console.log(inspect(data, {
   depth: 10,
 }))
 
+/**
+ * Sleep pause.
+ *
+ * @param {Number} time The time in milliseconds.
+ * @return {Promise<void>}
+ */
+const sleep = (time) => new Promise((resolve) => {
+  setTimeout(resolve, time)
+})
+
+/**
+ * Gets the property value.
+ *
+ * @param {ElementHandle|JSHandle} el Element
+ * @param {String} propName The property name
+ * @return {String} The property value.
+ */
+const getPropertyValue = async (el, propName) => {
+  const prop = await el.getProperty(propName)
+  const value = await prop.jsonValue()
+
+  return value
+}
+
 const langsConfig = Object.keys(languages).reduce((result, key) => {
   const { ace_mode: lang, aliases = [], extensions = [] } = languages[key];
 
@@ -50,16 +79,8 @@ const langsConfig = Object.keys(languages).reduce((result, key) => {
 
 const server = express()
 
-server.use(`/${IMAGES_DIR}`, express.static(IMAGES_DIR))
+server.use(`./${IMAGES_DIR}`, express.static(IMAGES_DIR))
 https.createServer(tlsOptions, server).listen(WEBHOOK_PORT, WEBHOOK_DOMAIN)
-
-const bot = new Telegraf(BOT_TOKEN, { username: BOT_USER })
-
-bot.context.db = knex
-
-// bot.use((ctx, next) => ctx.state.user
-//   ? next(ctx)
-//   : UserModel.store(ctx, next))
 
 /**
  * Start bot command
@@ -83,9 +104,6 @@ const startCommand = async (ctx) => {
   }, MESSAGES_TIMEOUT)
 }
 
-bot.command('/start', startCommand)
-bot.command('/start@cris_highlight_bot', startCommand)
-
 /**
  * Show languages list
  */
@@ -102,9 +120,6 @@ const langsCommand = async (ctx) => {
     ctx.deleteMessage(message.message_id)
   }, MESSAGES_TIMEOUT)
 }
-
-bot.command('/langs', langsCommand)
-bot.command('/langs@cris_highlight_bot', langsCommand)
 
 /**
  * Show themes list
@@ -129,71 +144,96 @@ const themeCommand = async (ctx) => {
   }, MESSAGES_TIMEOUT)
 }
 
-bot.command('/theme', themeCommand)
-bot.command('/theme@cris_highlight_bot', themeCommand)
-
 /**
- * Catch code message
+ * Run main programm
  */
-bot.entity(({ type }) => type === 'pre', async (ctx) => {
-  const images = await Promise.all(ctx.message.entities
-    .filter(({ type }) => type === 'pre')
-    .map(async (entity) => {
-      let lang
-      let full
-      let source = ctx.message.text.slice(entity.offset, entity.offset + entity.length)
-      const match = source.match(/^(\w+)\n/)
-      const themeSlug = ctx.state && ctx.state.user
-        ? ctx.state.user.theme
-        : 'Atom One Dark'
+const run = async () => {
+  const browser = await puppeteer.launch({ headless: false })
+  const pages = await browser.pages()
+  const mainPage = pages[0]
 
-      if (match && match[1] && (langs.includes(match[1]) || match[1] === 'js')) {
-        [full, lang] = match
-        if (langsConfig[lang]) {
-          lang = langsConfig[lang]
-          lang = lang === 'c_cpp' ? 'cpp' : lang
+  const bot = new Telegraf(BOT_TOKEN, { username: BOT_USER })
+
+  bot.context.db = knex
+
+  // bot.use((ctx, next) => ctx.state.user
+  //   ? next(ctx)
+  //   : UserModel.store(ctx, next))
+
+  bot.command('/start', startCommand)
+  bot.command('/start@cris_highlight_bot', startCommand)
+
+  bot.command('/langs', langsCommand)
+  bot.command('/langs@cris_highlight_bot', langsCommand)
+
+  bot.command('/theme', themeCommand)
+  bot.command('/theme@cris_highlight_bot', themeCommand)
+
+  /**
+   * Catch code message
+   */
+  bot.entity(({ type }) => type === 'pre', async (ctx) => {
+    const images = await Promise.all(ctx.message.entities
+      .filter(({ type }) => type === 'pre')
+      .map(async (entity) => {
+        let lang
+        let full
+        let source = ctx.message.text.slice(entity.offset, entity.offset + entity.length)
+        const match = source.match(/^(\w+)\n/)
+        const themeSlug = ctx.state && ctx.state.user
+          ? ctx.state.user.theme
+          : 'Atom One Dark'
+
+        if (match && match[1] && (langs.includes(match[1]) || match[1] === 'js')) {
+          [full, lang] = match
+          if (langsConfig[lang]) {
+            lang = langsConfig[lang]
+            lang = lang === 'c_cpp' ? 'cpp' : lang
+          }
+          source = source.replace(new RegExp(full, 'i'), '')
+        } else {
+          lang = 'auto'
+          source = source.replace(new RegExp('^\\n', 'i'), '')
         }
-        source = source.replace(new RegExp(full, 'i'), '')
-      } else {
-        lang = 'auto'
-        source = source.replace(new RegExp('^\\n', 'i'), '')
-      }
 
-      const html = messages.getHtml(
-        /* trimLines( */source.trim()/* ) */,
-        themeSlug,
-        lang !== 'auto' && lang
-      )
-      const filename = getImageFileName(html, themeSlug)
-      let imagePath = getUserPath(ctx, filename)
+        const html = messages.getHtml(
+          /* trimLines( */source.trim()/* ) */,
+          themeSlug,
+          lang !== 'auto' && lang
+        )
+        const filename = getImageFileName(html, themeSlug)
+        let imagePath = getUserPath(ctx, filename)
 
-      // await ChunkModel.store({
-      //   userId: ctx.state && Number(ctx.state.user.id),
-      //   chatId: Number(ctx.chat.id),
-      //   filename,
-      //   lang,
-      //   source,
-      // })
+        // await ChunkModel.store({
+        //   userId: ctx.state && Number(ctx.state.user.id),
+        //   chatId: Number(ctx.chat.id),
+        //   filename,
+        //   lang,
+        //   source,
+        // })
 
-      if (!isExisted(imagePath)) {
-        debug(filename)
-        debug(imagePath)
-        imagePath = await getWebShot(html, imagePath, webshotOptions)
-          .catch(debug) || imagePath
-        debug(imagePath)
-      }
+        if (!isExisted(imagePath)) {
+          debug(filename)
+          debug(imagePath)
+          imagePath = await getWebShot(html, imagePath, webshotOptions)
+            .catch(debug) || imagePath
+          debug(imagePath)
+        }
 
-      return imagePath
-    }))
+        return imagePath
+      }))
 
-  if (images.length === 0) {
-    return
-  }
-  if (images.length === 1) {
-    replyWithPhoto(ctx, images[0])
-    return
-  }
-  replyWithMediaGroup(ctx, images)
-})
+    if (images.length === 0) {
+      return
+    }
+    if (images.length === 1) {
+      replyWithPhoto(ctx, images[0])
+      return
+    }
+    replyWithMediaGroup(ctx, images)
+  })
 
-bot.launch()
+  bot.launch()
+}
+
+run()
