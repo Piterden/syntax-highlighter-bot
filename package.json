@@ -12,7 +12,7 @@
     "lint": "eslint --ext .js,.mjs .",
     "dev": "nodemon -V index.js",
     "watch": "nodemon -e js,mjs,json -w src -V index.js",
-    "postinstall": "npx npm-force-resolutions"
+    "preinstall": "npx npm-force-resolutions"
   },
   "author": "Denis Efremov <efremov.a.denis@gmail.com>",
   "repository": {
