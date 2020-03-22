@@ -12,7 +12,7 @@
     "lint": "eslint --ext .js,.mjs .",
     "dev": "nodemon -V index.js",
     "watch": "nodemon -e js,mjs,json -w src -V index.js",
-    "preinstall": "npx npm-force-resolutions"
+    "postinstall": "npx npm-force-resolutions"
   },
   "author": "Denis Efremov <efremov.a.denis@gmail.com>",
   "repository": {
@@ -24,6 +24,7 @@
     "@pm2/io": "^3.1.1",
     "dotenv": "^6.0.0",
     "express": "^4.17.1",
+    "graceful-fs": "^4.2.3",
     "highlight.js": "^9.16.2",
     "hoek": "^5.0.4",
     "image-size": "^0.6.3",
