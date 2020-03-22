@@ -1,10 +1,12 @@
+/* global document */
+
 import fs from 'fs'
 import path from 'path'
 import Knex from 'knex'
 import https from 'https'
 import dotenv from 'dotenv'
-import colors from 'colors'
-import prompt from 'prompt'
+// import colors from 'colors'
+// import prompt from 'prompt'
 import express from 'express'
 import { inspect } from 'util'
 import Telegraf from 'telegraf'
@@ -148,9 +150,15 @@ const themeCommand = async (ctx) => {
  * Run main programm
  */
 const run = async () => {
-  const browser = await puppeteer.launch({ headless: false })
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+    ],
+  })
   const pages = await browser.pages()
-  const mainPage = pages[0]
+  const page = pages[0]
 
   const bot = new Telegraf(BOT_TOKEN, { username: BOT_USER })
 
@@ -202,7 +210,13 @@ const run = async () => {
           lang !== 'auto' && lang
         )
         const filename = getImageFileName(html, themeSlug)
-        let imagePath = getUserPath(ctx, filename)
+        const imagePath = getUserPath(ctx, filename)
+        const wrapper = await page.waitForSelector('body')
+
+        await page.evaluate((markup) => {
+          document.write(markup)
+        }, html)
+
 
         // await ChunkModel.store({
         //   userId: ctx.state && Number(ctx.state.user.id),
@@ -215,8 +229,7 @@ const run = async () => {
         if (!isExisted(imagePath)) {
           debug(filename)
           debug(imagePath)
-          imagePath = await getWebShot(html, imagePath, webshotOptions)
-            .catch(debug) || imagePath
+          await wrapper.screenshot({ path: imagePath })
           debug(imagePath)
         }
 
