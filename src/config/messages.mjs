@@ -1,11 +1,10 @@
-import fs from 'fs'
+import fs from 'graceful-fs'
 import path from 'path'
 import highlight from 'highlight.js' // eslint-disable-line import/extensions
 
-import { ENV } from './config.mjs'
 import { getThemeSlug } from './methods.mjs'
 
-const { BOT_USER } = ENV
+const { BOT_USER } = process.env
 const cols = 2
 const maxWidth = 16
 

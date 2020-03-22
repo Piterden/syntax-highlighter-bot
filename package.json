@@ -23,7 +23,6 @@
   "dependencies": {
     "@pm2/io": "^3.1.1",
     "dotenv": "^6.0.0",
-    "esm": "^3.2.25",
     "express": "^4.17.1",
     "highlight.js": "^9.16.2",
     "hoek": "^5.0.4",
@@ -32,7 +31,6 @@
     "language-classifier": "0.0.1",
     "mysql2": "^2.1.0",
     "nodemon": "^2.0.2",
-    "objection": "^1.6.11",
     "prismjs": "^1.17.1",
     "sshpk": "^1.16.1",
     "telegraf": "^3.34.1",
@@ -41,10 +39,6 @@
   },
   "devDependencies": {
     "@atomix/eslint-config": "^7.1.0",
-    "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.8.7",
-    "@babel/preset-env": "^7.8.7",
-    "babel-eslint": "^8.2.6",
     "eslint": "^5.16.0",
     "eslint-config-node": "^4.0.0",
     "eslint-config-standard": "^11.0.0",

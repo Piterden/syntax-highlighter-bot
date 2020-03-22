@@ -1,10 +1,12 @@
 import Knex from 'knex'
+import https from 'https'
 import dotenv from 'dotenv'
-import webshot from 'webshot'
+import express from 'express'
+import { inspect } from 'util'
 import Telegraf from 'telegraf'
 
 import dbConfig from './knexfile.js'
-import { webshotOptions, languages } from './src/config/config.mjs'
+import { webshotOptions, languages, tlsOptions } from './src/config/config.mjs'
 import { messages, themes, langs } from './src/config/messages.mjs'
 import {
   isExisted,
@@ -18,9 +20,23 @@ import {
 dotenv.load()
 
 const { Markup } = Telegraf
-const { NODE_ENV, BOT_TOKEN, BOT_USER } = process.env
+const {
+  BOT_USER,
+  NODE_ENV,
+  BOT_TOKEN,
+  IMAGES_DIR,
+  WEBHOOK_PORT,
+  WEBHOOK_DOMAIN,
+  MESSAGES_TIMEOUT,
+} = process.env
 
 const knex = Knex(dbConfig[NODE_ENV])
+
+const debug = (data) => console.log(inspect(data, {
+  colors: true,
+  showHidden: true,
+  depth: 10,
+}))
 
 const langsConfig = Object.keys(languages).reduce((result, key) => {
   const { ace_mode: lang, aliases = [], extensions = [] } = languages[key];
@@ -32,7 +48,14 @@ const langsConfig = Object.keys(languages).reduce((result, key) => {
   return result
 }, {})
 
+const server = express()
+
+server.use(`/${IMAGES_DIR}`, express.static(IMAGES_DIR))
+https.createServer(tlsOptions, server).listen(WEBHOOK_PORT, WEBHOOK_DOMAIN)
+
 const bot = new Telegraf(BOT_TOKEN, { username: BOT_USER })
+
+bot.context.db = knex
 
 // bot.use((ctx, next) => ctx.state.user
 //   ? next(ctx)
@@ -47,17 +70,17 @@ const startCommand = async (ctx) => {
     await ctx.replyWithMarkdown(
       messages.welcomeUser(ctx.state.user || ctx.from),
       { ...Markup.removeKeyboard().extra(), disable_web_page_preview: true }
-    ).catch(console.error)
+    ).catch(debug)
     return
   }
   const message = await ctx.replyWithMarkdown(
     messages.themeGroup,
     { ...Markup.removeKeyboard().extra(), disable_web_page_preview: true }
-  ).catch(console.error)
+  ).catch(debug)
 
   setTimeout(() => {
     ctx.deleteMessage(message.message_id)
-  }, 10000)
+  }, MESSAGES_TIMEOUT)
 }
 
 bot.command('/start', startCommand)
@@ -69,15 +92,15 @@ bot.command('/start@cris_highlight_bot', startCommand)
 const langsCommand = async (ctx) => {
   // ctx.reply('fix')
   if (ctx.chat.type === 'private') {
-    await ctx.replyWithMarkdown(messages.langsList()).catch(console.error)
+    await ctx.replyWithMarkdown(messages.langsList()).catch(debug)
     return
   }
   const message = await ctx.replyWithMarkdown(messages.themeGroup)
-    .catch(console.error)
+    .catch(debug)
 
   setTimeout(() => {
     ctx.deleteMessage(message.message_id)
-  }, 10000)
+  }, MESSAGES_TIMEOUT)
 }
 
 bot.command('/langs', langsCommand)
@@ -95,15 +118,15 @@ const themeCommand = async (ctx) => {
         .oneTime()
         .resize()
         .extra()
-    ).catch(console.error)
+    ).catch(debug)
     return
   }
   const message = await ctx.replyWithMarkdown(messages.themeGroup)
-    .catch(console.error)
+    .catch(debug)
 
   setTimeout(() => {
     ctx.deleteMessage(message.message_id)
-  }, 10000)
+  }, MESSAGES_TIMEOUT)
 }
 
 bot.command('/theme', themeCommand)
@@ -128,6 +151,7 @@ bot.entity(({ type }) => type === 'pre', async (ctx) => {
         [full, lang] = match
         if (langsConfig[lang]) {
           lang = langsConfig[lang]
+          lang = lang === 'c_cpp' ? 'cpp' : lang
         }
         source = source.replace(new RegExp(full, 'i'), '')
       } else {
@@ -152,8 +176,11 @@ bot.entity(({ type }) => type === 'pre', async (ctx) => {
       // })
 
       if (!isExisted(imagePath)) {
+        debug(filename)
+        debug(imagePath)
         imagePath = await getWebShot(html, imagePath, webshotOptions)
-          .catch(console.log)
+          .catch(debug) || imagePath
+        debug(imagePath)
       }
 
       return imagePath

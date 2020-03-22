@@ -1,14 +1,14 @@
-import fs from 'fs'
+import fs from 'graceful-fs'
 import path from 'path'
 import crypto from 'crypto'
 import webshot from 'webshot'
 import sizeOf from 'image-size'
 import Telegraf from 'telegraf'
 
-import { url, ENV } from './config.mjs'
+import { url } from './config.mjs'
 
 const cols = 2
-const { IMAGES_DIR } = ENV
+const { IMAGES_DIR } = process.env
 const { Markup } = Telegraf
 
 export const md5 = (string) => crypto
@@ -18,8 +18,8 @@ export const md5 = (string) => crypto
 
 export const getPath = (file) => path.resolve(`${IMAGES_DIR}/${file}`)
 
-export const getUserPath = ({ state }, file) => path
-  .resolve(`${IMAGES_DIR}/${state && state.user && state.user.id}/${file}`)
+export const getUserPath = ({ state, from }, file) => path
+  .resolve(`${IMAGES_DIR}/${state && state.user && state.user.id || from.id}/${file}`)
 
 export const getThemeSlug = (name) => name
   .split(' ')
