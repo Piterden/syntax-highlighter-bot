@@ -10,6 +10,7 @@ import { debug, sleep } from './helpers/index.js'
 import { languages } from './src/config/config.mjs'
 import { messages, themes, langs } from './src/config/messages.mjs'
 import { replyWithPhoto, replyWithMediaGroup } from './src/config/methods.mjs'
+import { startCommand, langsCommand, themeCommand } from './handlers/index.js'
 
 dotenv.load()
 
@@ -40,65 +41,6 @@ const langsConfig = Object.keys(languages).reduce((result, key) => {
 
   return result
 }, {})
-
-/**
- * Start bot command
- */
-const startCommand = async (ctx) => {
-  // ctx.reply('fix')
-  if (ctx.chat.type === 'private') {
-    await ctx.replyWithMarkdown(
-      messages.welcomeUser(ctx.state.user || ctx.from),
-      { ...Markup.removeKeyboard().extra(), disable_web_page_preview: true }
-    ).catch(debug)
-    return
-  }
-  const message = await ctx.replyWithMarkdown(
-    messages.themeGroup,
-    { ...Markup.removeKeyboard().extra(), disable_web_page_preview: true }
-  ).catch(debug)
-
-  await sleep(MESSAGES_TIMEOUT)
-  ctx.deleteMessage(message.message_id)
-}
-
-/**
- * Show languages list
- */
-const langsCommand = async (ctx) => {
-  // ctx.reply('fix')
-  if (ctx.chat.type === 'private') {
-    await ctx.replyWithMarkdown(messages.langsList()).catch(debug)
-    return
-  }
-  const message = await ctx.replyWithMarkdown(messages.themeGroup)
-    .catch(debug)
-
-  await sleep(MESSAGES_TIMEOUT)
-  ctx.deleteMessage(message.message_id)
-}
-
-/**
- * Show themes list
- */
-const themeCommand = async (ctx) => {
-  // ctx.reply('fix')
-  if (ctx.chat.type === 'private') {
-    await ctx.replyWithMarkdown(
-      messages.themeChoose(ctx.state.user ? ctx.state.user.theme : {}),
-      Markup.keyboard(messages.themesKeyboard(themes))
-        .oneTime()
-        .resize()
-        .extra()
-    ).catch(debug)
-    return
-  }
-  const message = await ctx.replyWithMarkdown(messages.themeGroup)
-    .catch(debug)
-
-  await sleep(MESSAGES_TIMEOUT)
-  ctx.deleteMessage(message.message_id)
-}
 
 /**
  * Run main programm

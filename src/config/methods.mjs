@@ -1,8 +1,6 @@
 import fs from 'graceful-fs'
 import path from 'path'
 import crypto from 'crypto'
-import webshot from 'webshot'
-import sizeOf from 'image-size'
 import Telegraf from 'telegraf'
 
 import { url } from './config.mjs'
@@ -45,19 +43,6 @@ export const getFileURL = (file) => `${url}${filenameFix(file)}`
 
 export const getInlineFileURL = (file) => `${url}images/${filenameFix(file)}`
 
-export const getImageWidth = (file) => sizeOf(getPath(file)).width
-
-export const getImageHeight = (file) => sizeOf(getPath(file)).height
-
-export const getPhotoData = (file, idx = null) => ({
-  type: 'photo',
-  photo_url: getInlineFileURL(file),
-  thumb_url: getInlineFileURL(file),
-  photo_width: getImageWidth(file),
-  photo_height: getImageHeight(file),
-  id: (file + (idx || '')).replace(/^\d+\/([0-9a-f]+)_\w+\.\w+$/g, '$1'),
-})
-
 export const isPrivateChat = ({ chat }) => chat.type === 'private'
 
 // const escapeUser = (user = {}) => Object.keys(user).reduce((acc, key) => {
@@ -99,7 +84,7 @@ export const replyWithMediaGroup = async (ctx, images) => {
     images.map((image) => ({
       type: 'photo',
       media: {
-        url: getFileURL(image),
+        source: image,
       },
     })),
     {
@@ -116,14 +101,6 @@ export const replyWithMediaGroup = async (ctx, images) => {
     }]]).removeKeyboard().extra()
   )
 }
-
-export const getWebShot = (html, imagePath, webshotOptions) => new Promise(
-  (resolve, reject) => {
-    webshot(html, imagePath, webshotOptions, (err) => err
-      ? reject(err)
-      : resolve(imagePath))
-  }
-)
 
 export const replyWithDocument = (ctx, image) => {
   ctx.replyWithChatAction('upload_document')

@@ -1,6 +1,6 @@
 {
   "name": "syntaxhighlightbot",
-  "version": "1.0.14",
+  "version": "2.0.0-001-alpha",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -23,20 +23,15 @@
   "dependencies": {
     "@pm2/io": "^3.1.1",
     "dotenv": "^6.0.0",
-    "express": "^4.17.1",
     "graceful-fs": "^4.2.3",
     "highlight.js": "^9.16.2",
-    "hoek": "^5.0.4",
-    "image-size": "^0.6.3",
     "knex": "^0.20.1",
     "language-classifier": "0.0.1",
     "mysql2": "^2.1.0",
     "nodemon": "^2.0.2",
     "prismjs": "^1.17.1",
     "puppeteer": "^2.1.1",
-    "sshpk": "^1.16.1",
     "telegraf": "^3.34.1",
-    "webshot": "^0.18.0",
     "yaml": "^1.7.2"
   },
   "devDependencies": {
