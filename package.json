@@ -11,7 +11,7 @@
     "migrate:refresh": "knex migrate:rollback && knex migrate:latest",
     "lint": "eslint --ext .js,.mjs .",
     "dev": "nodemon -V index.js",
-    "watch": "nodemon -e js,mjs,json -w src -V index.js",
+    "watch": "nodemon -e js,mjs,json -w . -V index.js",
     "preinstall": "npx npm-force-resolutions"
   },
   "author": "Denis Efremov <efremov.a.denis@gmail.com>",

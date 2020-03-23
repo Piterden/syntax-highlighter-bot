@@ -1,59 +1,21 @@
 /* global document */
 
-import fs from 'fs'
-import path from 'path'
 import Knex from 'knex'
-import https from 'https'
 import dotenv from 'dotenv'
-// import colors from 'colors'
-// import prompt from 'prompt'
-import express from 'express'
-import { inspect } from 'util'
 import Telegraf from 'telegraf'
 import puppeteer from 'puppeteer'
 
 import dbConfig from './knexfile.js'
-import { webshotOptions, languages, tlsOptions } from './src/config/config.mjs'
+import { debug, sleep } from './helpers/index.js'
+import { languages } from './src/config/config.mjs'
 import { messages, themes, langs } from './src/config/messages.mjs'
-import {
-  isExisted,
-  getWebShot,
-  getUserPath,
-  replyWithPhoto,
-  getImageFileName,
-  replyWithMediaGroup,
-} from './src/config/methods.mjs'
+import { replyWithPhoto, replyWithMediaGroup } from './src/config/methods.mjs'
 
 dotenv.load()
 
 const { Markup } = Telegraf
-const {
-  BOT_USER,
-  NODE_ENV,
-  BOT_TOKEN,
-  IMAGES_DIR,
-  WEBHOOK_PORT,
-  WEBHOOK_DOMAIN,
-  MESSAGES_TIMEOUT,
-} = process.env
-
+const { NODE_ENV, BOT_USER, BOT_TOKEN, MESSAGES_TIMEOUT } = process.env
 const knex = Knex(dbConfig[NODE_ENV])
-
-const debug = (data) => console.log(inspect(data, {
-  colors: true,
-  showHidden: true,
-  depth: 10,
-}))
-
-/**
- * Sleep pause.
- *
- * @param {Number} time The time in milliseconds.
- * @return {Promise<void>}
- */
-const sleep = (time) => new Promise((resolve) => {
-  setTimeout(resolve, time)
-})
 
 /**
  * Gets the property value.
@@ -79,11 +41,6 @@ const langsConfig = Object.keys(languages).reduce((result, key) => {
   return result
 }, {})
 
-const server = express()
-
-server.use(`./${IMAGES_DIR}`, express.static(IMAGES_DIR))
-https.createServer(tlsOptions, server).listen(WEBHOOK_PORT, WEBHOOK_DOMAIN)
-
 /**
  * Start bot command
  */
@@ -101,9 +58,8 @@ const startCommand = async (ctx) => {
     { ...Markup.removeKeyboard().extra(), disable_web_page_preview: true }
   ).catch(debug)
 
-  setTimeout(() => {
-    ctx.deleteMessage(message.message_id)
-  }, MESSAGES_TIMEOUT)
+  await sleep(MESSAGES_TIMEOUT)
+  ctx.deleteMessage(message.message_id)
 }
 
 /**
@@ -118,9 +74,8 @@ const langsCommand = async (ctx) => {
   const message = await ctx.replyWithMarkdown(messages.themeGroup)
     .catch(debug)
 
-  setTimeout(() => {
-    ctx.deleteMessage(message.message_id)
-  }, MESSAGES_TIMEOUT)
+  await sleep(MESSAGES_TIMEOUT)
+  ctx.deleteMessage(message.message_id)
 }
 
 /**
@@ -141,9 +96,8 @@ const themeCommand = async (ctx) => {
   const message = await ctx.replyWithMarkdown(messages.themeGroup)
     .catch(debug)
 
-  setTimeout(() => {
-    ctx.deleteMessage(message.message_id)
-  }, MESSAGES_TIMEOUT)
+  await sleep(MESSAGES_TIMEOUT)
+  ctx.deleteMessage(message.message_id)
 }
 
 /**
@@ -157,16 +111,9 @@ const run = async () => {
       '--disable-setuid-sandbox',
     ],
   })
-  const pages = await browser.pages()
-  const page = pages[0]
-
   const bot = new Telegraf(BOT_TOKEN, { username: BOT_USER })
 
   bot.context.db = knex
-
-  // bot.use((ctx, next) => ctx.state.user
-  //   ? next(ctx)
-  //   : UserModel.store(ctx, next))
 
   bot.command('/start', startCommand)
   bot.command('/start@cris_highlight_bot', startCommand)
@@ -209,31 +156,16 @@ const run = async () => {
           themeSlug,
           lang !== 'auto' && lang
         )
-        const filename = getImageFileName(html, themeSlug)
-        const imagePath = getUserPath(ctx, filename)
-        const wrapper = await page.waitForSelector('body')
+        const page = await browser.newPage()
 
         await page.evaluate((markup) => {
           document.write(markup)
         }, html)
+        const code = await page.$('#code')
+        const buffer = await code.screenshot()
 
-
-        // await ChunkModel.store({
-        //   userId: ctx.state && Number(ctx.state.user.id),
-        //   chatId: Number(ctx.chat.id),
-        //   filename,
-        //   lang,
-        //   source,
-        // })
-
-        if (!isExisted(imagePath)) {
-          debug(filename)
-          debug(imagePath)
-          await wrapper.screenshot({ path: imagePath })
-          debug(imagePath)
-        }
-
-        return imagePath
+        await page.close()
+        return buffer
       }))
 
     if (images.length === 0) {

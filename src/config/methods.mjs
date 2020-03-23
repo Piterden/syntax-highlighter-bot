@@ -81,7 +81,7 @@ export const replyWithPhoto = (ctx, image) => {
   ctx.replyWithChatAction('upload_photo')
   return ctx.replyWithPhoto(
     {
-      url: getFileURL(image),
+      source: image,
     },
     {
       ...Markup.inlineKeyboard([[{
