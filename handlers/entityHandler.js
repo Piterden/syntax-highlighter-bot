@@ -14,56 +14,60 @@ const langsConfig = Object.keys(languages).reduce((result, key) => {
   return result
 }, {})
 
-export default (browser) => async (ctx) => {
-  const images = await Promise.all(ctx.message.entities
-    .filter(({ type }) => type === 'pre')
-    .map(async (entity) => {
-      let lang
-      let full
-      let source = ctx.message.text.slice(
-        entity.offset,
-        entity.offset + entity.length
-      )
-      const match = source.match(/^(\w+)\s+?\n/)
-      const themeSlug = ctx.state && ctx.state.user
-        ? ctx.state.user.theme
-        : 'Atom One Dark'
+export default (browser) => [
+  ({ type }) => type === 'pre',
+  async (ctx) => {
+    const entities = ctx.message.entities || []
+    const images = await Promise.all(entities
+      .filter(({ type }) => type === 'pre')
+      .map(async (entity) => {
+        let lang
+        let full
+        let source = ctx.message.text.slice(
+          entity.offset,
+          entity.offset + entity.length
+        )
+        const match = source.match(/^(\w+)\s+?\n/)
+        const themeSlug = ctx.state && ctx.state.user
+          ? ctx.state.user.theme
+          : 'Atom One Dark'
 
-      if (match && match[1] && (langs.includes(match[1]) || match[1] === 'js')) {
-        [full, lang] = match
-        if (langsConfig[lang]) {
-          lang = langsConfig[lang]
-          lang = lang === 'c_cpp' ? 'cpp' : lang
+        if (match && match[1] && (langs.includes(match[1]) || match[1] === 'js')) {
+          [full, lang] = match
+          if (langsConfig[lang]) {
+            lang = langsConfig[lang]
+            lang = lang === 'c_cpp' ? 'cpp' : lang
+          }
+          source = source.replace(new RegExp(full, 'i'), '')
+        } else {
+          lang = 'auto'
+          source = source.replace(new RegExp('^\\n', 'i'), '')
         }
-        source = source.replace(new RegExp(full, 'i'), '')
-      } else {
-        lang = 'auto'
-        source = source.replace(new RegExp('^\\n', 'i'), '')
-      }
 
-      const html = messages.getHtml(
-        /* trimLines( */source.trim()/* ) */,
-        themeSlug,
-        lang !== 'auto' && lang
-      )
-      const page = await browser.newPage()
+        const html = messages.getHtml(
+          /* trimLines( */source.trim()/* ) */,
+          themeSlug,
+          lang !== 'auto' && lang
+        )
+        const page = await browser.newPage()
 
-      await page.evaluate((markup) => {
-        document.write(markup)
-      }, html)
-      const code = await page.$('#code')
-      const buffer = await code.screenshot()
+        await page.evaluate((markup) => {
+          document.write(markup)
+        }, html)
+        const code = await page.$('#code')
+        const buffer = await code.screenshot()
 
-      await page.close()
-      return buffer
-    }))
+        await page.close()
+        return buffer
+      }) || [])
 
-  if (images.length === 0) {
-    return
-  }
-  if (images.length === 1) {
-    replyWithPhoto(ctx, images[0])
-    return
-  }
-  replyWithMediaGroup(ctx, images)
-}
+    if (images.length === 0) {
+      return
+    }
+    if (images.length === 1) {
+      replyWithPhoto(ctx, images[0])
+      return
+    }
+    replyWithMediaGroup(ctx, images)
+  },
+]
