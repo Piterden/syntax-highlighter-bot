@@ -4,10 +4,6 @@ import Telegraf from 'telegraf'
 import puppeteer from 'puppeteer'
 
 import dbConfig from './knexfile.js'
-import { debug, sleep } from './helpers/index.js'
-import { languages } from './src/config/config.mjs'
-import { messages, themes, langs } from './src/config/messages.mjs'
-import { replyWithPhoto, replyWithMediaGroup } from './src/config/methods.mjs'
 import {
   langsCommand,
   removeAction,
@@ -18,8 +14,7 @@ import {
 
 dotenv.load()
 
-const { Markup } = Telegraf
-const { NODE_ENV, BOT_USER, BOT_TOKEN, MESSAGES_TIMEOUT } = process.env
+const { NODE_ENV, BOT_USER, BOT_TOKEN } = process.env
 const knex = Knex(dbConfig[NODE_ENV])
 
 /**

@@ -14,6 +14,17 @@ const langsConfig = Object.keys(languages).reduce((result, key) => {
   return result
 }, {})
 
+const unindent = (text) => {
+  const lines = text.split('\n')
+  const counts = lines
+    .filter(Boolean)
+    .map((line) => line.match(/^\s*/)[0].length)
+  const min = Math.min(...counts)
+  const re = new RegExp(`\\s{${min}}`)
+
+  return lines.map((line) => line.replace(re, '')).join('\n')
+}
+
 export default (browser) => [
   ({ type }) => type === 'pre',
   async (ctx) => {
@@ -45,7 +56,7 @@ export default (browser) => [
         }
 
         const html = messages.getHtml(
-          /* trimLines( */source.trim()/* ) */,
+          unindent(source),
           themeSlug,
           lang !== 'auto' && lang
         )
