@@ -29,7 +29,7 @@
     "language-classifier": "0.0.1",
     "mysql2": "^2.1.0",
     "nodemon": "^2.0.2",
-    "prismjs": "^1.17.1",
+    "prismjs": "^1.21.0",
     "puppeteer": "^2.1.1",
     "telegraf": "^3.34.1",
     "yaml": "^1.7.2"
