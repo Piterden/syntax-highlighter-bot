@@ -24,7 +24,7 @@
     "@pm2/io": "^3.1.1",
     "dotenv": "^6.0.0",
     "graceful-fs": "^4.2.3",
-    "highlight.js": "^9.16.2",
+    "highlight.js": "^10.1.2",
     "knex": "^0.20.1",
     "language-classifier": "0.0.1",
     "mysql2": "^2.1.0",
